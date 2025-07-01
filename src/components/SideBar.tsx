@@ -89,7 +89,7 @@ const navItems: NavItem[] = [
 
 const SideBar = () => {
   return (
-    <aside className="bg-[#0E1422] fixed top-0 left-0 h-screen w-54 p-4 hidden sm:block">
+    <aside className="bg-[#0E1422] fixed top-0 left-0 h-screen w-52 p-4 hidden sm:block">
       <div className="text-white text-xl font-bold mb-8">LOGO</div>
       <nav className="space-y-4">
         {navItems.map((item, index) => (
