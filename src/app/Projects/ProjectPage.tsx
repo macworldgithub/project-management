@@ -117,12 +117,12 @@ export default function ProjectsPage() {
       </div>
 
       {/* Cards */}
-      <div className="bg-gray-100 px-6 py-6">
+      <div className="bg-gray-100 px-6 py-6 ">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((proj, index) => (
             <div key={index} className="bg-white rounded-xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-semibold">{proj.title}</h2>
+                <h2 className="text-lg font-semibold text-black">{proj.title}</h2>
                 <span className={`text-xs px-2 py-1 rounded-full ${proj.statusColor}`}>
                   {proj.status}
                 </span>
