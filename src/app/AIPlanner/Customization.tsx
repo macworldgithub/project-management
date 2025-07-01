@@ -6,9 +6,10 @@ import { BsFileEarmarkSpreadsheet, BsTrello, BsLock } from 'react-icons/bs';
 
 const PlanPage = () => {
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-10 bg-gray-200">
-      {/* Plan Customization Section */}
-      <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+    // <div className="max-w-7xl mx-auto p-4 sm:p-6 md:p-8 space-y-10 bg-gray-200">
+      //  <div className="bg-white rounded-lg shadow-lg p-6 space-y-6"> 
+      <div className=" bg-gray-200 p-4 sm:p-8">
+      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-md p-6 mb-4">
         <h2 className="text-xl md:text-2xl font-semibold text-gray-800">Plan Customization</h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -92,7 +93,7 @@ const PlanPage = () => {
       </div>
 
       {/* AI Planning Assistant Section */}
-      <div className="bg-white rounded-lg shadow-lg p-6 space-y-4">
+      <div className="bg-white max-w-7xl mx-auto rounded-lg shadow-lg p-6 space-y-4">
         <div className="text-lg md:text-xl font-semibold text-gray-800">
           <BsLock className="inline-block mr-2 text-blue-500" />
           AI Planning Assistant

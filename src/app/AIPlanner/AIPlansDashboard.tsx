@@ -4,7 +4,7 @@ import { FaCog, FaFilter, FaThList, FaRegClock } from 'react-icons/fa';
 
 export default function AIPlansDashboard() {
   return (
-    <div className="min-h-screen bg-gray-200 p-4 sm:p-8 ">
+    <div className=" bg-gray-200 p-4 sm:p-8 ">
       <div className="max-w-7xl mx-auto space-y-10">
         {/* Top Settings Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

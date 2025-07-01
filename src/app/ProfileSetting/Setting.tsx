@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 const Setting = () => {
   return (
-    <div className="min-h-screen bg-gray-200 py-8 px-4 md:px-10 ">
+    <div className=" bg-gray-200 py-8 px-4 md:px-10 ">
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-md p-6 md:p-10 space-y-10">
         
         {/* Personal Info */}

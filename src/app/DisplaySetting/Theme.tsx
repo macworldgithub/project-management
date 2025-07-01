@@ -9,7 +9,7 @@ export default function Theme() {
   const [density, setDensity] = useState('comfortable');
 
   return (
-    <div className="min-h-screen bg-gray-200 p-4 md:p-8 ">
+    <div className=" bg-gray-200 p-4 md:p-8 ">
       <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 md:p-10">
         {/* Theme Settings */}
         <div className="mb-8 text-black">

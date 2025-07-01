@@ -26,7 +26,7 @@ export default function ProjectRequirements() {
 
   return (
     <div className="bg-gray-200 p-4 sm:p-8">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-4 sm:p-10">
+      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-md p-4 sm:p-10">
         <div className="flex justify-between items-start mb-6">
           <h2 className="text-xl sm:text-2xl font-semibold text-gray-800">Project Requirements</h2>
           <p className="text-sm text-gray-500 hidden sm:block">

@@ -50,7 +50,7 @@ export default function APIAccess() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-200 px-4 md:px-12 py-4">
+    <div className=" bg-gray-200 px-4 md:px-12 py-4">
       {/* API Access Section */}
       <div className="bg-white rounded-xl shadow p-6 md:p-8 w-full max-w-6xl mx-auto mb-10 text-black">
         <h3 className="text-xl font-semibold mb-6">API Access</h3>

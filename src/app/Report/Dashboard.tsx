@@ -6,7 +6,7 @@ import { FaFileExport, FaCode, FaUsers, FaPaintBrush } from 'react-icons/fa';
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-gray-200 p-4 md:p-8 space-y-4">
+    <div className=" bg-gray-200 p-4 md:p-8 space-y-4">
       {/* Charts Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Team Performance */}

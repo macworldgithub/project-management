@@ -60,7 +60,7 @@ export default function ConnectedApps() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-200 px-4 md:px-12 py-4 -mb-12">
+    <div className=" bg-gray-200 px-4 md:px-12 py-4 -mb-12">
       <div className="max-w-6xl mx-auto bg-white rounded-xl shadow p-6 md:p-10">
         <div className="bg-white rounded-xl shadow p-6 md:p-8 w-full max-w-6xl mx-auto">
           <h3 className="text-lg md:text-xl font-semibold mb-6 text-black">Connected Apps</h3>

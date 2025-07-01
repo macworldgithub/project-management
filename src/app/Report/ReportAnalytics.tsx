@@ -5,7 +5,7 @@ import { FaCheckCircle, FaClipboardList, FaProjectDiagram, FaUsers } from 'react
 
 const ReportAnalytics = () => {
   return (
-    <div className="min-h-screen bg-gray-200 p-4 md:p-8 space-y-4">
+    <div className=" bg-gray-200 p-4 md:p-8 space-y-4">
       {/* Top Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-black">
         <div className="bg-white p-6 rounded-xl shadow flex flex-col justify-between">

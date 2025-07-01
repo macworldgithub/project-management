@@ -14,7 +14,7 @@ export default function AIProject() {
 
   return (
     <div className=" bg-gray-200 p-4 sm:p-8">
-      <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6">
+      <div className="max-w-7xl mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl sm:text-3xl font-semibold text-gray-800 mb-6">AI Project Planner</h1>
         <p className="text-gray-600 mb-8">
           Create optimized project plans with AI-powered scheduling, risk analysis, and resource allocation.

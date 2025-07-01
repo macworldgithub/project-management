@@ -17,7 +17,7 @@ const data = [
 
 const Step1 = () => {
   return (
-    <div className="p-4 sm:p-6 md:p-8 bg-gray-200 min-h-screen">
+    <div className="p-4 sm:p-6 md:p-8 bg-gray-200">
       {/* Header */}
       <div className="flex justify-between items-center mb-6 text-black">
         <h1 className="text-lg sm:text-xl font-semibold">Dashboard <span className="text-gray-500 font-normal">June 2025</span></h1>

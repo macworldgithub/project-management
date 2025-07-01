@@ -40,7 +40,7 @@ export default function ConnectedAccount() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-200 p-4 md:p-8">
+    <div className=" bg-gray-200 p-4 md:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Privacy Content */}
         {activeTab === 'privacy' && (
