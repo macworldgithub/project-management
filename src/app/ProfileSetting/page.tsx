@@ -6,8 +6,9 @@ const ProfileSetting = () => {
   return (
     <div>
         <Header1/>
-        <ProfileNavigation/>
+        <ProfileNavigation>
         <Setting/>
+        </ProfileNavigation>
     </div>
   )
 }

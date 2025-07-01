@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { FiEdit, FiTrash } from 'react-icons/fi';
 
 export default function APIAccess() {
-  const [webhooks, setWebhooks] = useState([
+  const [webhooks] = useState([
     {
       url: 'https://example.com/webhook/tasks',
       description: 'Task updates',

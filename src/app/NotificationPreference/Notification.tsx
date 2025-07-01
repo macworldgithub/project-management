@@ -4,7 +4,7 @@ import React from 'react';
 
 const NotificationPre = () => {
   return (
-   <div className="min-h-screen bg-gray-200 p-4 md:p-8 max-sm:-mt-8 max-md:-mt-16 md:-mt-16">
+   <div className="min-h-screen bg-gray-200 p-4 md:p-8 ">
       <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-md p-6 md:p-10">
         {/* Email Notifications */}
         <div>

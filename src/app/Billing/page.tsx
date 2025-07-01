@@ -1,13 +1,14 @@
 import Header2 from '@/components/Header2';
 import React from 'react'
 import Payment from './Payment';
-import Route from '@/components/Route';
+import Tabs from '@/components/Tabs';
 const Billing = () => {
   return (
     <div>
         <Header2/>
-        <Route/>
-        <Payment/>
+        <Tabs>
+          <Payment/>
+        </Tabs>
     </div>
   )
 }

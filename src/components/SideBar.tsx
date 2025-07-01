@@ -12,7 +12,15 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
 
-const navItems = [
+// ✅ Explicitly include the optional `disabled` field
+type NavItem = {
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+  disabled?: boolean;
+};
+
+const navItems: NavItem[] = [
   { name: 'Dashboard', href: '/DashBoard', icon: <Squares2X2Icon className="h-5 w-5" /> },
   { name: 'Projects', href: '/Projects', icon: <FolderIcon className="h-5 w-5" /> },
   { name: 'Kanban Board', href: '/KanbanBoard', icon: <RectangleStackIcon className="h-5 w-5" /> },
@@ -20,6 +28,8 @@ const navItems = [
   { name: 'Reports', href: '/Report', icon: <ChartBarIcon className="h-5 w-5" /> },
   { name: 'Settings', href: '/ProfileSetting', icon: <Cog6ToothIcon className="h-5 w-5" /> },
   { name: 'Account', href: '/AccountSetting', icon: <UserCircleIcon className="h-5 w-5" /> },
+  // Example of a disabled item
+  // { name: 'Coming Soon', href: '#', icon: <UserCircleIcon className="h-5 w-5" />, disabled: true },
 ];
 
 const SideBar = () => {

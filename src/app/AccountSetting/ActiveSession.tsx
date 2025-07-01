@@ -32,10 +32,9 @@ export default function ActiveSession() {
     }
   ];
 
-  const handleSignOut = (allDevices: boolean) => {
-    // Add sign out logic here
-    console.log(allDevices ? 'Signing out all devices' : 'Signing out this device');
-  };
+  // const handleSignOut = (allDevices: boolean) => {
+  //   console.log(allDevices ? 'Signing out all devices' : 'Signing out this device');
+  // };
 
   const toggleNotification = (type: keyof typeof notifications) => {
     setNotifications(prev => ({
@@ -83,7 +82,7 @@ export default function ActiveSession() {
             <div className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg">
               <div>
                 <h3 className="font-medium text-gray-900">New sign-in notifications</h3>
-                <p className="text-sm text-gray-500">Get notified when there's a new sign-in to your account</p>
+                <p className="text-sm text-gray-500">Get notified when theres a new sign-in to your account</p>
               </div>
               <button
                 onClick={() => toggleNotification('newSignIn')}

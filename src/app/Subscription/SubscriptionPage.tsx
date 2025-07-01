@@ -8,51 +8,51 @@ export default function SubscriptionPage() {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annually'>('annually');
   const [autoRenew, setAutoRenew] = useState(true);
 
-  const plans = [
-    {
-      name: 'FEATURE',
-      storage: '10 GB',
-      projects: '5',
-      teamMembers: '3',
-      apiAccess: '×',
-      analytics: '×',
-      support: '×',
-      price: '$0/year'
-    },
-    {
-      name: 'BASIC',
-      storage: '60 GB',
-      projects: '20',
-      teamMembers: '15',
-      apiAccess: '√',
-      analytics: '×',
-      support: '×',
-      price: '$99/year'
-    },
-    {
-      name: 'PRO',
-      storage: 'Unlimited',
-      projects: 'Unlimited',
-      teamMembers: 'Unlimited',
-      apiAccess: '√',
-      analytics: '√',
-      support: '√',
-      price: '$199/year'
-    },
-    {
-      name: 'ENTERPRISE',
-      storage: 'Unlimited',
-      projects: 'Unlimited',
-      teamMembers: 'Unlimited',
-      apiAccess: '√',
-      analytics: '√',
-      support: '√',
-      price: 'Contact Sales'
-    }
-  ];
+  // const plans = [
+  //   {
+  //     name: 'FEATURE',
+  //     storage: '10 GB',
+  //     projects: '5',
+  //     teamMembers: '3',
+  //     apiAccess: '×',
+  //     analytics: '×',
+  //     support: '×',
+  //     price: '$0/year'
+  //   },
+  //   {
+  //     name: 'BASIC',
+  //     storage: '60 GB',
+  //     projects: '20',
+  //     teamMembers: '15',
+  //     apiAccess: '√',
+  //     analytics: '×',
+  //     support: '×',
+  //     price: '$99/year'
+  //   },
+  //   {
+  //     name: 'PRO',
+  //     storage: 'Unlimited',
+  //     projects: 'Unlimited',
+  //     teamMembers: 'Unlimited',
+  //     apiAccess: '√',
+  //     analytics: '√',
+  //     support: '√',
+  //     price: '$199/year'
+  //   },
+  //   {
+  //     name: 'ENTERPRISE',
+  //     storage: 'Unlimited',
+  //     projects: 'Unlimited',
+  //     teamMembers: 'Unlimited',
+  //     apiAccess: '√',
+  //     analytics: '√',
+  //     support: '√',
+  //     price: 'Contact Sales'
+  //   }
+  // ];
 
   return (
-    <div className="min-h-screen bg-gray-200 p-4 md:p-8 max-sm:-mt-12 max-md:-mt-14 md:-mt-18" >
+    <div className="min-h-screen bg-gray-200 p-4 md:p-8 max-sm:-mt-8 max-md:-mt-10 md:-mt-14" >
       <div className="max-w-6xl mx-auto">
 
         {/* Subscription Content */}
@@ -225,7 +225,7 @@ export default function SubscriptionPage() {
                     />
                     <span className="ml-2 text-gray-700">Automatically renew my subscription</span>
                   </label>
-                  <p className="text-xs text-gray-500 mt-1">We'll notify you before your subscription renews</p>
+                  <p className="text-xs text-gray-500 mt-1">Well notify you before your subscription renews</p>
                 </div>
               </div>
             </div>

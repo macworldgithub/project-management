@@ -104,7 +104,7 @@ const PlanPage = () => {
             <div className="flex items-start gap-2">
               <BsLock className="text-blue-500 mt-1" />
               <p className="text-sm text-gray-700">
-                Based on your project requirements, I recommend the <strong>"Optimized Timeline"</strong> plan. It balances efficiency with reasonable risk levels. Would you like me to explain the key benefits?
+                Based on your project requirements, I recommend the <strong>&quot;Optimized Timeline&quot;</strong> plan. It balances efficiency with reasonable risk levels. Would you like me to explain the key benefits?
               </p>
             </div>
           </div>
@@ -130,7 +130,7 @@ const PlanPage = () => {
                   <li>Consider a phased delivery approach</li>
                 </ul>
                 <p className="text-sm text-gray-700 mt-2">
-                  I've updated the plan customization options to reflect these changes. Would you like to see the impact?
+                  I&apos;ve updated the plan customization options to reflect these changes. Would you like to see the impact?
                 </p>
               </div>
             </div>

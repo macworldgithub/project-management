@@ -6,8 +6,9 @@ const NotificationPre = () => {
   return (
     <div>
         <Header1/>
-        <ProfileNavigation/>
+        <ProfileNavigation>
         <Notification/>
+        </ProfileNavigation>
     </div>
   )
 }

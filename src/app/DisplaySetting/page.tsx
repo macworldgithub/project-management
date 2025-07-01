@@ -7,8 +7,9 @@ const DisplaySetting = () => {
   return (
     <div>
         <Header1/>
-        <ProfileNavigation/>
+        <ProfileNavigation>
         <Theme/>
+        </ProfileNavigation>
     </div>
   )
 }

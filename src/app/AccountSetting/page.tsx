@@ -2,16 +2,16 @@
   import Password from './Password';
   import ActiveSession from './ActiveSession';
   import Header2 from '@/components/Header2';
-import Route from '@/components/Route';
-
+  import Tab from '@/components/Tabs';
 
   const AccountSetting = () => {
     return (
       <div>
         <Header2/>
-        <Route/>
-        <Password/>
-        <ActiveSession/>
+        <Tab>
+          <Password/>
+          <ActiveSession/>
+        </Tab>
       </div>
     )
   }
