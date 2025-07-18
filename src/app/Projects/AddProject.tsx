@@ -10,31 +10,47 @@ export default function AddProject() {
   const [complexity, setComplexity] = useState("Medium");
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
+  const [team, setTeam] = useState([
+    { name: "", role: "", availability: "" }
+  ]);
+
+  const handleTeamChange = (idx: number, field: "name" | "role" | "availability", value: string) => {
+    const updated = [...team];
+    updated[idx][field] = value;
+    setTeam(updated);
+  };
+
+  const addTeamMember = () => {
+    setTeam([...team, { name: "", role: "", availability: "" }]);
+  };
+
+  const removeTeamMember = (idx: number) => {
+    setTeam(team.filter((_, i) => i !== idx));
+  };
 
   const handleSubmit = async () => {
-    if (!name || !deliveryDate) return;
-
+    if (!name || !deliveryDate || team.some(m => !m.name || !m.role || !m.availability)) return;
     setLoading(true);
     try {
-      const res = await axios.post(
+      await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`,
         {
           name,
-          deliveryDate,
+          deliveryDate: new Date(deliveryDate).toISOString(),
           complexity,
-          team: [
-            {
-              name: "Alice",
-              role: "Developer",
-              availability: 20,
-            },
-          ],
+          team: team.map(member => ({
+            name: member.name,
+            role: member.role,
+            availability: Number(member.availability)
+          })),
         }
       );
       setSuccessMsg("Project created successfully!");
       setShowModal(false);
       setName("");
       setDeliveryDate("");
+      setComplexity("Medium");
+      setTeam([{ name: "", role: "", availability: "" }]);
     } catch (error: any) {
       alert(
         "Failed to create project: " +
@@ -93,6 +109,46 @@ export default function AddProject() {
               <option value="Medium">Medium</option>
               <option value="High">High</option>
             </select>
+
+            {/* Team Members Section */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">Team Members</label>
+              {team.map((member, idx) => (
+                <div key={idx} className="mb-2 flex gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="Name"
+                    value={member.name}
+                    onChange={e => handleTeamChange(idx, "name", e.target.value)}
+                    className="border px-2 py-1 rounded text-xs"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Role"
+                    value={member.role}
+                    onChange={e => handleTeamChange(idx, "role", e.target.value)}
+                    className="border px-2 py-1 rounded text-xs"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Availability"
+                    value={member.availability}
+                    onChange={e => handleTeamChange(idx, "availability", e.target.value)}
+                    className="border px-2 py-1 rounded text-xs w-20"
+                  />
+                  {team.length > 1 && (
+                    <button type="button" onClick={() => removeTeamMember(idx)} className="text-red-500 text-xs">X</button>
+                  )}
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addTeamMember}
+                className="text-blue-600 text-xs mb-3"
+              >
+                + Add Team Member
+              </button>
+            </div>
 
             <button
               onClick={handleSubmit}
