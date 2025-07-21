@@ -1,24 +1,46 @@
 "use client";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { FaBell, FaUserAlt } from "react-icons/fa";
 import { FiGrid, FiList } from "react-icons/fi";
 import AddProject from "./AddProject";
 
+// Define types for project and team member
+interface TeamMember {
+  _id?: string;
+  name: string;
+  role: string;
+  availability: number;
+}
+
+interface Project {
+  _id?: string;
+  name: string;
+  deliveryDate?: string;
+  team?: TeamMember[];
+  complexity?: string;
+  status?: string;
+  projectId?: string;
+}
+
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const projectsPerPage = 9;
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
-  const [projectDetail, setProjectDetail] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [detailLoading, setDetailLoading] = useState(false);
+  const router = useRouter();
+
+  // Modal and detail state
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projectDetail, setProjectDetail] = useState<Project | { error: string } | null>(null);
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [detailLoading, setDetailLoading] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchProjects() {
       try {
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`);
+        const res = await axios.get<Project[]>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`);
         setProjects(res.data);
       } catch (err) {
         setProjects([]);
@@ -34,12 +56,14 @@ export default function ProjectsPage() {
   const endIdx = startIdx + projectsPerPage;
   const currentProjects = projects.slice(startIdx, endIdx);
 
-  const handleProjectClick = async (projectId) => {
+  // Card click handler: open modal and fetch detail
+  const handleProjectClick = async (projectId: string | undefined) => {
+    if (!projectId) return;
     setSelectedProjectId(projectId);
     setModalOpen(true);
     setDetailLoading(true);
     try {
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}`);
+      const res = await axios.get<Project>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}`);
       setProjectDetail(res.data);
     } catch (err) {
       setProjectDetail({ error: "Failed to load project details" });
@@ -193,47 +217,48 @@ export default function ProjectsPage() {
             </div>
           </>
         )}
-      </div>
-      {modalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
-            <button
-              className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
-              onClick={() => {
-                setModalOpen(false);
-                setProjectDetail(null);
-                setSelectedProjectId(null);
-              }}
-            >
-              ×
-            </button>
-            {detailLoading ? (
-              <div className="text-center py-10">Loading...</div>
-            ) : projectDetail && !projectDetail.error ? (
-              <>
-                <h2 className="text-xl font-bold mb-2">{projectDetail.name}</h2>
-                <div className="mb-2 text-gray-600">Status: {projectDetail.status}</div>
-                <div className="mb-2 text-gray-600">Complexity: {projectDetail.complexity}</div>
-                <div className="mb-2 text-gray-600">
-                  Delivery Date: {projectDetail.deliveryDate ? new Date(projectDetail.deliveryDate).toLocaleDateString() : ""}
-                </div>
-                <div className="mb-2 text-gray-600">
-                  Team:
-                  <ul className="list-disc ml-6">
-                    {projectDetail.team?.map((member, idx) => (
-                      <li key={member._id || idx}>
-                        {member.name} ({member.role}) - Availability: {member.availability}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </>
-            ) : (
-              <div className="text-red-500">{projectDetail?.error || "No details found."}</div>
-            )}
+        {/* Modal for project detail */}
+        {modalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
+                onClick={() => {
+                  setModalOpen(false);
+                  setProjectDetail(null);
+                  setSelectedProjectId(null);
+                }}
+              >
+                ×
+              </button>
+              {detailLoading ? (
+                <div className="text-center py-10">Loading...</div>
+              ) : projectDetail && !("error" in projectDetail) ? (
+                <>
+                  <h2 className="text-xl font-bold mb-2">{projectDetail.name}</h2>
+                  <div className="mb-2 text-gray-600">Status: {projectDetail.status}</div>
+                  <div className="mb-2 text-gray-600">Complexity: {projectDetail.complexity}</div>
+                  <div className="mb-2 text-gray-600">
+                    Delivery Date: {projectDetail.deliveryDate ? new Date(projectDetail.deliveryDate).toLocaleDateString() : ""}
+                  </div>
+                  <div className="mb-2 text-gray-600">
+                    Team:
+                    <ul className="list-disc ml-6">
+                      {projectDetail.team?.map((member, idx) => (
+                        <li key={member._id || idx}>
+                          {member.name} ({member.role}) - Availability: {member.availability}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </>
+              ) : (
+                <div className="text-red-500">{(projectDetail as { error?: string })?.error || "No details found."}</div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
