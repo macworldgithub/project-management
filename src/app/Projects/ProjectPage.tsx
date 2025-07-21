@@ -8,6 +8,8 @@ import AddProject from "./AddProject";
 export default function ProjectsPage() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const projectsPerPage = 9;
 
   useEffect(() => {
     async function fetchProjects() {
@@ -15,7 +17,6 @@ export default function ProjectsPage() {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`);
         setProjects(res.data);
       } catch (err) {
-        // Optionally show error
         setProjects([]);
       } finally {
         setLoading(false);
@@ -23,6 +24,11 @@ export default function ProjectsPage() {
     }
     fetchProjects();
   }, []);
+
+  const totalPages = Math.ceil(projects.length / projectsPerPage);
+  const startIdx = (currentPage - 1) * projectsPerPage;
+  const endIdx = startIdx + projectsPerPage;
+  const currentProjects = projects.slice(startIdx, endIdx);
 
   return (
     <div className="min-h-screen">
@@ -86,72 +92,84 @@ export default function ProjectsPage() {
         {loading ? (
           <div className="text-center py-10">Loading projects...</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((proj, index) => (
-              <div key={proj._id || index} className="bg-white rounded-xl shadow-sm p-5">
-                <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-lg font-semibold text-black">
-                    {proj.name}
-                  </h2>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full ${
-                      proj.status === "Active"
-                        ? "bg-green-100 text-green-700"
-                        : proj.status === "On Hold"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : proj.status === "Delayed"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-blue-100 text-blue-700"
-                    }`}
-                  >
-                    {proj.status}
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 mb-4">{proj.complexity}</p>
-                {/* Progress bar can be static or calculated if you have progress info */}
-                <div className="h-2 bg-gray-200 rounded-full mb-2">
-                  <div
-                    className={`h-full rounded-full bg-blue-600`}
-                    style={{ width: `50%` }} // You can replace 50 with actual progress if available
-                  />
-                </div>
-                <div className="text-sm text-gray-500 mb-2">
-                  {/* If you have progress, show it here */}
-                  Progress: 50%
-                </div>
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>
-                    Due: {proj.deliveryDate ? new Date(proj.deliveryDate).toLocaleDateString() : ""}
-                  </span>
-                  <div className="flex space-x-1">
-                    {Array.from({ length: proj.team?.length || 0 }).map((_, i) => (
-                      <FaUserAlt key={i} className="text-gray-400 text-xs" />
-                    ))}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentProjects.map((proj, index) => (
+                <div key={proj._id || index} className="bg-white rounded-xl shadow-sm p-5">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-lg font-semibold text-black">
+                      {proj.name}
+                    </h2>
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        proj.status === "Active"
+                          ? "bg-green-100 text-green-700"
+                          : proj.status === "On Hold"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : proj.status === "Delayed"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
+                    >
+                      {proj.status}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-4">{proj.complexity}</p>
+                  <div className="h-2 bg-gray-200 rounded-full mb-2">
+                    <div
+                      className={`h-full rounded-full bg-blue-600`}
+                      style={{ width: `50%` }}
+                    />
+                  </div>
+                  <div className="text-sm text-gray-500 mb-2">
+                    Progress: 50%
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500">
+                    <span>
+                      Due: {proj.deliveryDate ? new Date(proj.deliveryDate).toLocaleDateString() : ""}
+                    </span>
+                    <div className="flex space-x-1">
+                      {Array.from({ length: proj.team?.length || 0 }).map((_, i) => (
+                        <FaUserAlt key={i} className="text-gray-400 text-xs" />
+                      ))}
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+            {/* Footer Pagination */}
+            <div className="flex justify-between items-center mt-6 text-xs text-gray-600">
+              <div>
+                Showing {projects.length === 0 ? 0 : startIdx + 1}-{Math.min(endIdx, projects.length)} of {projects.length} projects
               </div>
-            ))}
-          </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  className="px-2 py-1 border rounded-md bg-white hover:bg-gray-200"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  {"<"}
+                </button>
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    className={`px-3 py-1 border rounded-md ${currentPage === i + 1 ? "bg-blue-600 text-white" : "hover:bg-gray-200"}`}
+                    onClick={() => setCurrentPage(i + 1)}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+                <button
+                  className="px-2 py-1 border rounded-md bg-white hover:bg-gray-200"
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  {">"}
+                </button>
+              </div>
+            </div>
+          </>
         )}
-
-        {/* Footer Pagination */}
-        <div className="flex  justify-between items-center mt-6 text-xs text-gray-600">
-          <div>Showing 1-9 of 12 projects</div>
-          <div className="flex items-center space-x-2">
-            <button className="px-2 py-1 border rounded-md bg-white hover:bg-gray-200">
-              {"<"}
-            </button>
-            <button className="px-3 py-1 border rounded-md bg-blue-600 text-white">
-              1
-            </button>
-            <button className="px-3 py-1 border rounded-md hover:bg-gray-200">
-              2
-            </button>
-            <button className="px-2 py-1 border rounded-md bg-white hover:bg-gray-200">
-              {">"}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );
