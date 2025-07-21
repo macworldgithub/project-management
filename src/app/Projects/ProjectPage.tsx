@@ -10,6 +10,10 @@ export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const projectsPerPage = 9;
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [projectDetail, setProjectDetail] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   useEffect(() => {
     async function fetchProjects() {
@@ -29,6 +33,20 @@ export default function ProjectsPage() {
   const startIdx = (currentPage - 1) * projectsPerPage;
   const endIdx = startIdx + projectsPerPage;
   const currentProjects = projects.slice(startIdx, endIdx);
+
+  const handleProjectClick = async (projectId) => {
+    setSelectedProjectId(projectId);
+    setModalOpen(true);
+    setDetailLoading(true);
+    try {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}`);
+      setProjectDetail(res.data);
+    } catch (err) {
+      setProjectDetail({ error: "Failed to load project details" });
+    } finally {
+      setDetailLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen">
@@ -95,7 +113,12 @@ export default function ProjectsPage() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {currentProjects.map((proj, index) => (
-                <div key={proj._id || index} className="bg-white rounded-xl shadow-sm p-5">
+                <div
+                  key={proj._id || index}
+                  className="bg-white rounded-xl shadow-sm p-5 cursor-pointer hover:shadow-lg transition"
+                  onClick={() => handleProjectClick(proj.projectId)}
+                  title="View project details"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="text-lg font-semibold text-black">
                       {proj.name}
@@ -171,6 +194,46 @@ export default function ProjectsPage() {
           </>
         )}
       </div>
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
+              onClick={() => {
+                setModalOpen(false);
+                setProjectDetail(null);
+                setSelectedProjectId(null);
+              }}
+            >
+              ×
+            </button>
+            {detailLoading ? (
+              <div className="text-center py-10">Loading...</div>
+            ) : projectDetail && !projectDetail.error ? (
+              <>
+                <h2 className="text-xl font-bold mb-2">{projectDetail.name}</h2>
+                <div className="mb-2 text-gray-600">Status: {projectDetail.status}</div>
+                <div className="mb-2 text-gray-600">Complexity: {projectDetail.complexity}</div>
+                <div className="mb-2 text-gray-600">
+                  Delivery Date: {projectDetail.deliveryDate ? new Date(projectDetail.deliveryDate).toLocaleDateString() : ""}
+                </div>
+                <div className="mb-2 text-gray-600">
+                  Team:
+                  <ul className="list-disc ml-6">
+                    {projectDetail.team?.map((member, idx) => (
+                      <li key={member._id || idx}>
+                        {member.name} ({member.role}) - Availability: {member.availability}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <div className="text-red-500">{projectDetail?.error || "No details found."}</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
