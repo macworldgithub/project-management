@@ -116,7 +116,7 @@ export default function ProjectsPage() {
         </div>
         <div className="flex space-x-1">
           <button className="p-2 border rounded-md bg-white hover:bg-gray-200 text-black">
-            <FiGrid />
+          <FiGrid />
           </button>
           <button className="p-2 border rounded-md bg-white hover:bg-gray-200 text-black">
             <FiList />

@@ -10,11 +10,13 @@ export default function AddProject() {
   const [complexity, setComplexity] = useState("Medium");
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
-  const [team, setTeam] = useState([
-    { name: "", role: "", availability: "" }
-  ]);
+  const [team, setTeam] = useState([{ name: "", role: "", availability: "" }]);
 
-  const handleTeamChange = (idx: number, field: "name" | "role" | "availability", value: string) => {
+  const handleTeamChange = (
+    idx: number,
+    field: "name" | "role" | "availability",
+    value: string
+  ) => {
     const updated = [...team];
     updated[idx][field] = value;
     setTeam(updated);
@@ -29,22 +31,24 @@ export default function AddProject() {
   };
 
   const handleSubmit = async () => {
-    if (!name || !deliveryDate || team.some(m => !m.name || !m.role || !m.availability)) return;
+    if (
+      !name ||
+      !deliveryDate ||
+      team.some((m) => !m.name || !m.role || !m.availability)
+    )
+      return;
     setLoading(true);
     try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`,
-        {
-          name,
-          deliveryDate: new Date(deliveryDate).toISOString(),
-          complexity,
-          team: team.map(member => ({
-            name: member.name,
-            role: member.role,
-            availability: Number(member.availability)
-          })),
-        }
-      );
+      await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`, {
+        name,
+        deliveryDate: new Date(deliveryDate).toISOString(),
+        complexity,
+        team: team.map((member) => ({
+          name: member.name,
+          role: member.role,
+          availability: Number(member.availability),
+        })),
+      });
       setSuccessMsg("Project created successfully!");
       setShowModal(false);
       setName("");
@@ -112,32 +116,46 @@ export default function AddProject() {
 
             {/* Team Members Section */}
             <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">Team Members</label>
+              <label className="block text-sm font-medium mb-1">
+                Team Members
+              </label>
               {team.map((member, idx) => (
                 <div key={idx} className="mb-2 flex gap-2 items-center">
                   <input
                     type="text"
                     placeholder="Name"
                     value={member.name}
-                    onChange={e => handleTeamChange(idx, "name", e.target.value)}
+                    onChange={(e) =>
+                      handleTeamChange(idx, "name", e.target.value)
+                    }
                     className="border px-2 py-1 rounded text-xs"
                   />
                   <input
                     type="text"
                     placeholder="Role"
                     value={member.role}
-                    onChange={e => handleTeamChange(idx, "role", e.target.value)}
+                    onChange={(e) =>
+                      handleTeamChange(idx, "role", e.target.value)
+                    }
                     className="border px-2 py-1 rounded text-xs"
                   />
                   <input
                     type="number"
                     placeholder="Availability"
                     value={member.availability}
-                    onChange={e => handleTeamChange(idx, "availability", e.target.value)}
+                    onChange={(e) =>
+                      handleTeamChange(idx, "availability", e.target.value)
+                    }
                     className="border px-2 py-1 rounded text-xs w-20"
                   />
                   {team.length > 1 && (
-                    <button type="button" onClick={() => removeTeamMember(idx)} className="text-red-500 text-xs">X</button>
+                    <button
+                      type="button"
+                      onClick={() => removeTeamMember(idx)}
+                      className="text-red-500 text-xs"
+                    >
+                      X
+                    </button>
                   )}
                 </div>
               ))}
