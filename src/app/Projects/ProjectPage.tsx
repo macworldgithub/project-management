@@ -1,78 +1,29 @@
 "use client";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { FaBell, FaUserAlt } from "react-icons/fa";
 import { FiGrid, FiList } from "react-icons/fi";
 import AddProject from "./AddProject";
 
-const projects = [
-  {
-    title: "E-commerce Platform",
-    description:
-      "Building a comprehensive e-commerce solution with payment integration, inventory management, and analytics dashboard.",
-    status: "Active",
-    statusColor: "bg-green-100 text-green-700",
-    progress: 75,
-    dueDate: "Jul 15, 2025",
-    avatars: 4,
-    barColor: "bg-blue-600",
-  },
-  {
-    title: "Mobile App Project",
-    description:
-      "Cross-platform mobile application for fitness tracking with social features and personalized workout plans.",
-    status: "On Hold",
-    statusColor: "bg-yellow-100 text-yellow-800",
-    progress: 60,
-    dueDate: "Aug 30, 2025",
-    avatars: 3,
-    barColor: "bg-orange-500",
-  },
-  {
-    title: "Dashboard Redesign",
-    description:
-      "Modernizing the analytics dashboard with improved UX/UI, responsive design, and new data visualization components.",
-    status: "Active",
-    statusColor: "bg-green-100 text-green-700",
-    progress: 90,
-    dueDate: "Jun 28, 2025",
-    avatars: 2,
-    barColor: "bg-green-600",
-  },
-  {
-    title: "CRM Integration",
-    description:
-      "Integrating existing systems with a new CRM platform, including data migration and custom workflow automation.",
-    status: "Delayed",
-    statusColor: "bg-red-100 text-red-700",
-    progress: 40,
-    dueDate: "Sep 10, 2025",
-    avatars: 3,
-    barColor: "bg-red-600",
-  },
-  {
-    title: "AI Recommendation Engine",
-    description:
-      "Developing a machine learning-based recommendation system for personalized content delivery across multiple platforms.",
-    status: "Active",
-    statusColor: "bg-green-100 text-green-700",
-    progress: 65,
-    dueDate: "Oct 5, 2025",
-    avatars: 3,
-    barColor: "bg-blue-700",
-  },
-  {
-    title: "Cloud Migration",
-    description:
-      "Migrating on-premise infrastructure to cloud services with minimal downtime and optimized cost structure.",
-    status: "Planning",
-    statusColor: "bg-blue-100 text-blue-700",
-    progress: 15,
-    dueDate: "Nov 20, 2025",
-    avatars: 3,
-    barColor: "bg-gray-600",
-  },
-];
-
 export default function ProjectsPage() {
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchProjects() {
+      try {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`);
+        setProjects(res.data);
+      } catch (err) {
+        // Optionally show error
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProjects();
+  }, []);
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -132,40 +83,56 @@ export default function ProjectsPage() {
 
       {/* Cards */}
       <div className="bg-gray-100 px-6 py-6 ">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {projects.map((proj, index) => (
-            <div key={index} className="bg-white rounded-xl shadow-sm p-5">
-              <div className="flex items-center justify-between mb-2">
-                <h2 className="text-lg font-semibold text-black">
-                  {proj.title}
-                </h2>
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${proj.statusColor}`}
-                >
-                  {proj.status}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mb-4">{proj.description}</p>
-              <div className="h-2 bg-gray-200 rounded-full mb-2">
-                <div
-                  className={`h-full rounded-full ${proj.barColor}`}
-                  style={{ width: `${proj.progress}%` }}
-                />
-              </div>
-              <div className="text-sm text-gray-500 mb-2">
-                Progress: {proj.progress}%
-              </div>
-              <div className="flex items-center justify-between text-xs text-gray-500">
-                <span>Due: {proj.dueDate}</span>
-                <div className="flex space-x-1">
-                  {Array.from({ length: proj.avatars }).map((_, i) => (
-                    <FaUserAlt key={i} className="text-gray-400 text-xs" />
-                  ))}
+        {loading ? (
+          <div className="text-center py-10">Loading projects...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {projects.map((proj, index) => (
+              <div key={proj._id || index} className="bg-white rounded-xl shadow-sm p-5">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-lg font-semibold text-black">
+                    {proj.name}
+                  </h2>
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      proj.status === "Active"
+                        ? "bg-green-100 text-green-700"
+                        : proj.status === "On Hold"
+                        ? "bg-yellow-100 text-yellow-800"
+                        : proj.status === "Delayed"
+                        ? "bg-red-100 text-red-700"
+                        : "bg-blue-100 text-blue-700"
+                    }`}
+                  >
+                    {proj.status}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mb-4">{proj.complexity}</p>
+                {/* Progress bar can be static or calculated if you have progress info */}
+                <div className="h-2 bg-gray-200 rounded-full mb-2">
+                  <div
+                    className={`h-full rounded-full bg-blue-600`}
+                    style={{ width: `50%` }} // You can replace 50 with actual progress if available
+                  />
+                </div>
+                <div className="text-sm text-gray-500 mb-2">
+                  {/* If you have progress, show it here */}
+                  Progress: 50%
+                </div>
+                <div className="flex items-center justify-between text-xs text-gray-500">
+                  <span>
+                    Due: {proj.deliveryDate ? new Date(proj.deliveryDate).toLocaleDateString() : ""}
+                  </span>
+                  <div className="flex space-x-1">
+                    {Array.from({ length: proj.team?.length || 0 }).map((_, i) => (
+                      <FaUserAlt key={i} className="text-gray-400 text-xs" />
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Footer Pagination */}
         <div className="flex  justify-between items-center mt-6 text-xs text-gray-600">
