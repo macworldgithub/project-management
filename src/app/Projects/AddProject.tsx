@@ -2,6 +2,8 @@
 import { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { XIcon } from "lucide-react";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function AddProject() {
   const [showModal, setShowModal] = useState(false);
@@ -18,6 +20,9 @@ export default function AddProject() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [scopeFile, setScopeFile] = useState<File | null>(null);
   const [scopeTeamString, setScopeTeamString] = useState<string>("");
+  const [scopeTeam, setScopeTeam] = useState([
+    { name: "", role: "", availability: "" }
+  ]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -50,6 +55,18 @@ export default function AddProject() {
     setTeam(team.filter((_, i) => i !== idx));
   };
 
+  const handleScopeTeamChange = (idx: number, field: "name" | "role" | "availability", value: string) => {
+    const updated = [...scopeTeam];
+    updated[idx][field] = value;
+    setScopeTeam(updated);
+  };
+  const addScopeTeamMember = () => {
+    setScopeTeam([...scopeTeam, { name: "", role: "", availability: "" }]);
+  };
+  const removeScopeTeamMember = (idx: number) => {
+    setScopeTeam(scopeTeam.filter((_, i) => i !== idx));
+  };
+
   const handleSubmit = async () => {
     if (!name || !deliveryDate || team.some(m => !m.name || !m.role || !m.availability)) return;
     setLoading(true);
@@ -74,9 +91,11 @@ export default function AddProject() {
       setComplexity("Medium");
       setTeam([{ name: "", role: "", availability: "" }]);
     } catch (error: any) {
-      alert(
-        "Failed to create project: " +
-          (error.response?.data?.message || error.message)
+      toast.error(
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create project: Unknown error"
       );
     } finally {
       setLoading(false);
@@ -86,19 +105,12 @@ export default function AddProject() {
   const handleScopeFileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!scopeFile) {
-      alert("Please select a scope file.");
+      toast.error("Please select a scope file.");
       return;
     }
-    // Team JSON validation
-    let teamArr;
-    try {
-      teamArr = JSON.parse(scopeTeamString);
-      if (!Array.isArray(teamArr)) {
-        alert("Team must be a JSON array! Example: [{\"name\": \"bob\", \"role\": \"designer\", \"availability\": 20}]");
-        return;
-      }
-    } catch (e) {
-      alert("Team must be a valid JSON array! Example: [{\"name\": \"bob\", \"role\": \"designer\", \"availability\": 20}]");
+    // Team validation
+    if (scopeTeam.some(m => !m.name || !m.role || !m.availability)) {
+      toast.error("Please fill all team member fields.");
       return;
     }
     setLoading(true);
@@ -106,7 +118,11 @@ export default function AddProject() {
       const formData = new FormData();
       formData.append("scope", scopeFile);
       formData.append("deliveryDate", deliveryDate ? new Date(deliveryDate).toISOString() : "");
-      formData.append("team", scopeTeamString);
+      formData.append("team", JSON.stringify(scopeTeam.map(member => ({
+        name: member.name,
+        role: member.role,
+        availability: Number(member.availability)
+      }))));
       formData.append("complexity", complexity);
       await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/scope`,
@@ -122,11 +138,13 @@ export default function AddProject() {
       setScopeFile(null);
       setDeliveryDate("");
       setComplexity("Medium");
-      setScopeTeamString("");
+      setScopeTeam([{ name: "", role: "", availability: "" }]);
     } catch (error: any) {
-      alert(
-        "Failed to create project with scope file: " +
-          (error.response?.data?.message || error.message)
+      toast.error(
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create project with scope file: Unknown error"
       );
     } finally {
       setLoading(false);
@@ -172,7 +190,7 @@ export default function AddProject() {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
             {/* Close Button */}
             <button
@@ -203,15 +221,42 @@ export default function AddProject() {
                   className="w-full border px-3 py-2 rounded text-sm mb-3"
                   required
                 />
-                <label className="block text-sm font-medium mb-1">Team (JSON string)</label>
-                <input
-                  type="text"
-                  placeholder='[{"name": "Alice", "role": "Developer", "availability": 20}]'
-                  value={scopeTeamString}
-                  onChange={e => setScopeTeamString(e.target.value)}
-                  className="w-full border px-3 py-2 rounded text-sm mb-3"
-                  required
-                />
+                <label className="block text-sm font-medium mb-1">Team Members</label>
+                {scopeTeam.map((member, idx) => (
+                  <div key={idx} className="mb-2 flex gap-2 items-center">
+                    <input
+                      type="text"
+                      placeholder="Name"
+                      value={member.name}
+                      onChange={e => handleScopeTeamChange(idx, "name", e.target.value)}
+                      className="border  py-1 rounded text-xs"
+                    />
+                    <input
+                      type="text"
+                      placeholder="Role"
+                      value={member.role}
+                      onChange={e => handleScopeTeamChange(idx, "role", e.target.value)}
+                      className="border  py-1 rounded text-xs"
+                    />
+                    <input
+                      type="number"
+                      placeholder="Availability"
+                      value={member.availability}
+                      onChange={e => handleScopeTeamChange(idx, "availability", e.target.value)}
+                      className="border px-2 py-1 rounded text-xs w-20"
+                    />
+                    {scopeTeam.length > 1 && (
+                      <button type="button" onClick={() => removeScopeTeamMember(idx)} className="text-red-500 text-xs">X</button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addScopeTeamMember}
+                  className="text-blue-600 text-xs mb-3"
+                >
+                  + Add Team Member
+                </button>
                 <label className="block text-sm font-medium mb-1">Complexity</label>
                 <select
                   value={complexity}
@@ -307,6 +352,10 @@ export default function AddProject() {
                   </button>
                 </div>
 
+
+
+                
+
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
@@ -325,6 +374,10 @@ export default function AddProject() {
           </div>
         </div>
       )}
+      <ToastContainer />
     </>
   );
 }
+
+
+
