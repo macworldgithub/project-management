@@ -1,11 +1,11 @@
 // app/layout.tsx
-import './globals.css';
-import React from 'react';
-import SideBar from '@/components/SideBar';
+import "./globals.css";
+import React from "react";
+import SideBar from "@/components/SideBar";
 
 export const metadata = {
-  title: 'My App',
-  description: 'Dashboard layout',
+  title: "My App",
+  description: "Dashboard layout",
 };
 
 export default function RootLayout({
