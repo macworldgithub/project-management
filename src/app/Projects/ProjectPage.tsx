@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -77,11 +78,6 @@ export default function ProjectsPage() {
     endDate: '',
   });
   const [editTaskLoading, setEditTaskLoading] = useState(false);
-
-  // Add state for status change modal and dropdown
-  const [statusModalOpen, setStatusModalOpen] = useState(false);
-  const [statusProjectId, setStatusProjectId] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
 
   // Move fetchProjects outside useEffect for reuse
   const fetchProjects = async () => {
@@ -221,33 +217,6 @@ export default function ProjectsPage() {
     }
   };
 
-  const handleStatusBadgeClick = (projectId: string, currentStatus: string) => {
-    setStatusProjectId(projectId);
-    setSelectedStatus(currentStatus); // default to current status
-    setStatusModalOpen(true);
-  };
-
-  const handleStatusUpdate = async () => {
-    if (!statusProjectId || !selectedStatus) return;
-    try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${statusProjectId}/status`,
-        { status: selectedStatus }
-      );
-      toast.success("Status updated successfully");
-      setProjects((prev) =>
-        prev.map((proj) =>
-          proj.projectId === statusProjectId ? { ...proj, status: selectedStatus } : proj
-        )
-      );
-      setStatusModalOpen(false);
-      setStatusProjectId(null);
-      setSelectedStatus("");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to update status");
-    }
-  };
-
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -323,17 +292,13 @@ export default function ProjectsPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         proj.status === "Active"
-                          ? "bg-green-100 text-green-700 cursor-pointer hover:brightness-95"
+                          ? "bg-green-100 text-green-700"
                           : proj.status === "On Hold"
-                          ? "bg-yellow-100 text-yellow-800 cursor-pointer hover:brightness-95"
+                          ? "bg-yellow-100 text-yellow-800"
                           : proj.status === "Delayed"
-                          ? "bg-red-100 text-red-700 cursor-pointer hover:brightness-95"
-                          : "bg-blue-100 text-blue-700 cursor-pointer hover:brightness-95"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-blue-100 text-blue-700"
                       }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusBadgeClick(proj.projectId, proj.status);
-                      }}
                     >
                       {proj.status}
                     </span>
@@ -631,56 +596,6 @@ export default function ProjectsPage() {
               >
                 {editTaskLoading ? 'Saving...' : 'Save'}
               </button>
-            </div>
-          </div>
-        )}
-        {/* Status Update Modal */}
-        {statusModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
-            <div className="bg-white rounded-lg p-6 w-full max-w-xs relative">
-              <button
-                className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
-                onClick={() => {
-                  setStatusModalOpen(false);
-                  setStatusProjectId(null);
-                  setSelectedStatus("");
-                }}
-              >
-                <IoCloseCircleOutline size={24} />
-              </button>
-              <h2 className="text-lg font-bold mb-4 text-black text-center">Do you want to update the status?</h2>
-              <div className="mb-4">
-                <select
-                  className="w-full border rounded px-2 py-2 text-sm"
-                  value={selectedStatus}
-                  onChange={e => setSelectedStatus(e.target.value)}
-                >
-                  <option value="">Select status</option>
-                  <option value="Active">Active</option>
-                  <option value="Completed">Completed</option>
-                  <option value="On Hold">On Hold</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
-              </div>
-              <div className="flex justify-center gap-4 mt-4">
-                <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  onClick={handleStatusUpdate}
-                  disabled={!selectedStatus}
-                >
-                  Yes
-                </button>
-                <button
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
-                  onClick={() => {
-                    setStatusModalOpen(false);
-                    setStatusProjectId(null);
-                    setSelectedStatus("");
-                  }}
-                >
-                  No
-                </button>
-              </div>
             </div>
           </div>
         )}
