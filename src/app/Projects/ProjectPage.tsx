@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
+import ScopeUploader from "./ScopeUploader";
 
 // Define types for project and team member
 interface TeamMember {
@@ -48,6 +49,7 @@ type Timeline = {
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [projectsWithTimeline, setProjectsWithTimeline] = useState<{ [id: string]: boolean }>({});
 
   const [projectTimelines, setProjectTimelines] = useState<
     Record<string, Timeline>
@@ -69,21 +71,54 @@ export default function ProjectsPage() {
   const [detailLoading, setDetailLoading] = useState<boolean>(false);
   const [openTimelineId, setOpenTimelineId] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchProjects() {
-      try {
-        const res = await axios.get<Project[]>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`
-        );
-        setProjects(res.data);
-      } catch (err) {
-        setProjects([]);
-      } finally {
-        setLoading(false);
-      }
+  // Add state for ScopeUploader modal
+  const [scopeUploadProjectId, setScopeUploadProjectId] = useState<string | null>(null);
+
+  // Move fetchProjects outside useEffect for reuse
+  const fetchProjects = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get<Project[]>(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`
+      );
+      setProjects(res.data);
+    } catch (err) {
+      setProjects([]);
+    } finally {
+      setLoading(false);
     }
+  };
+  useEffect(() => {
     fetchProjects();
   }, []);
+
+  useEffect(() => {
+    // After projects are loaded, check timelines
+    if (projects.length === 0) return;
+    const checkTimelines = async () => {
+      const results: { [id: string]: boolean } = {};
+      await Promise.all(
+        projects.map(async (proj) => {
+          try {
+            const res = await axios.get(
+              `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${proj.projectId}/timeline`
+            );
+            // If timeline exists and has tasks or milestones, mark as true
+            // @ts-ignore
+            results[proj.projectId] =
+              (res.data?.tasks && res.data.tasks.length > 0) ||
+              (res.data?.milestones && res.data.milestones.length > 0);
+          } catch {
+            // If error (404), mark as false
+            // @ts-ignore
+            results[proj.projectId] = false;
+          }
+        })
+      );
+      setProjectsWithTimeline(results);
+    };
+    checkTimelines();
+  }, [projects]);
 
   const fetchProjectTimeline = async (projectId: string) => {
     if (openTimelineId === projectId) {
@@ -211,15 +246,14 @@ export default function ProjectsPage() {
                       {proj.name}
                     </h2>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${
-                        proj.status === "Active"
-                          ? "bg-green-100 text-green-700"
-                          : proj.status === "On Hold"
+                      className={`text-xs px-2 py-1 rounded-full ${proj.status === "Active"
+                        ? "bg-green-100 text-green-700"
+                        : proj.status === "On Hold"
                           ? "bg-yellow-100 text-yellow-800"
                           : proj.status === "Delayed"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-blue-100 text-blue-700"
-                      }`}
+                            ? "bg-red-100 text-red-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
                     >
                       {proj.status}
                     </span>
@@ -254,18 +288,20 @@ export default function ProjectsPage() {
                       )}
                     </div>
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevents modal from opening
-                      fetchProjectTimeline(proj.projectId);
-                    }}
-                    // onClick={() => fetchProjectTimeline(proj.projectId)}
-                    className="mt-2 bg-white text-blue-600 border border-blue-600 px-3 py-1 rounded hover:bg-blue-50 transition text-sm"
-                  >
-                    {openTimelineId === proj.projectId
-                      ? "Close Timeline"
-                      : "View Timeline"}
-                  </button>
+                  {/* View Timeline button only if project has a timeline */}
+                  {projectsWithTimeline[proj.projectId] && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevents modal from opening
+                        fetchProjectTimeline(proj.projectId);
+                      }}
+                      className="mt-2 bg-white text-blue-600 border border-blue-600 px-3 py-1 rounded hover:bg-blue-50 transition text-sm"
+                    >
+                      {openTimelineId === proj.projectId
+                        ? "Close Timeline"
+                        : "View Timeline"}
+                    </button>
+                  )}
 
                   {/* Timeline block inside the map */}
                   {openTimelineId === proj.projectId &&
@@ -331,6 +367,18 @@ export default function ProjectsPage() {
                         </div>
                       </div>
                     )}
+                  {/* Upload Scope Button if scope is not defined */}
+                  {!projectsWithTimeline[proj.projectId] && (
+                    <button
+                      className="mt-2 bg-[#0E1422] ml-2 text-white px-3 py-1 rounded hover:bg-yellow-600 transition text-sm"
+                      onClick={e => {
+                        e.stopPropagation();
+                        setScopeUploadProjectId(proj.projectId);
+                      }}
+                    >
+                      Upload Scope
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -352,11 +400,10 @@ export default function ProjectsPage() {
                 {Array.from({ length: totalPages }).map((_, i) => (
                   <button
                     key={i}
-                    className={`px-3 py-1 border rounded-md ${
-                      currentPage === i + 1
-                        ? "bg-blue-600 text-white"
-                        : "hover:bg-gray-200"
-                    }`}
+                    className={`px-3 py-1 border rounded-md ${currentPage === i + 1
+                      ? "bg-blue-600 text-white"
+                      : "hover:bg-gray-200"
+                      }`}
                     onClick={() => setCurrentPage(i + 1)}
                   >
                     {i + 1}
@@ -409,8 +456,8 @@ export default function ProjectsPage() {
                     Delivery Date:{" "}
                     {projectDetail.deliveryDate
                       ? new Date(
-                          projectDetail.deliveryDate
-                        ).toLocaleDateString()
+                        projectDetail.deliveryDate
+                      ).toLocaleDateString()
                       : ""}
                   </div>
                   <div className="mb-2 text-gray-600">
@@ -433,6 +480,16 @@ export default function ProjectsPage() {
               )}
             </div>
           </div>
+        )}
+        {/* ScopeUploader Modal */}
+        {scopeUploadProjectId && (
+          <ScopeUploader
+            projectId={scopeUploadProjectId}
+            onClose={() => {
+              setScopeUploadProjectId(null);
+              fetchProjects(); // Refresh list after upload
+            }}
+          />
         )}
       </div>
     </div>
