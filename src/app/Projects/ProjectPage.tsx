@@ -7,6 +7,8 @@ import { FiGrid, FiList } from "react-icons/fi";
 import AddProject from "./AddProject";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { IoCloseCircleOutline } from "react-icons/io5";
+import { toast } from "react-toastify";
 
 // Define types for project and team member
 interface TeamMember {
@@ -102,7 +104,7 @@ export default function ProjectsPage() {
       setOpenTimelineId(projectId); // open this project's timeline
     } catch (error) {
       console.error(error);
-      alert("Error loading timeline");
+      toast.error("No timeline found for this project.");
     } finally {
       setLoadingProjectId(null);
     }
@@ -386,14 +388,15 @@ export default function ProjectsPage() {
                 }}
               >
                 {/* <FaTimes className="text-lg" color="red" /> */}
-                <h1 className="text-red-600">Close</h1>
+                {/* <h1 className="text-red-600">Close</h1> */}
+                <IoCloseCircleOutline size={24} />
               </button>
 
               {detailLoading ? (
                 <div className="text-center py-10">Loading...</div>
               ) : projectDetail && !("error" in projectDetail) ? (
                 <>
-                  <h2 className="text-xl font-bold mb-2">
+                  <h2 className="text-xl font-bold mb-2 text-black">
                     {projectDetail.name}
                   </h2>
                   <div className="mb-2 text-gray-600">
