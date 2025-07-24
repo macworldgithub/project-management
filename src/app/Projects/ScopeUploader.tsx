@@ -1,5 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from "react";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 interface ScopeUploaderProps {
   projectId: string;
@@ -13,8 +14,11 @@ const ScopeUploader: React.FC<ScopeUploaderProps> = ({
   const [file, setFile] = useState<File | null>(null);
   const [manualScope, setManualScope] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
-  const [team, setTeam] = useState("");
-  const [complexity, setComplexity] = useState("");
+  // Team as array of objects
+  const [team, setTeam] = useState([
+    { name: "", role: "", availability: "" },
+  ]);
+  const [complexity, setComplexity] = useState("Medium");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -29,6 +33,23 @@ const ScopeUploader: React.FC<ScopeUploaderProps> = ({
   const handleManualScopeChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     setManualScope(e.target.value);
     setFile(null); // Clear file if manual entered
+  };
+
+  // Team member handlers
+  const handleTeamChange = (
+    idx: number,
+    field: "name" | "role" | "availability",
+    value: string
+  ) => {
+    const updated = [...team];
+    updated[idx][field] = value;
+    setTeam(updated);
+  };
+  const addTeamMember = () => {
+    setTeam([...team, { name: "", role: "", availability: "" }]);
+  };
+  const removeTeamMember = (idx: number) => {
+    setTeam(team.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -50,7 +71,22 @@ const ScopeUploader: React.FC<ScopeUploaderProps> = ({
         formData.append("scope", blob, "scope.txt");
       }
       if (deliveryDate) formData.append("deliveryDate", deliveryDate);
-      if (team) formData.append("team", team);
+      // Only include team if at least one member has a non-empty field
+      const filteredTeam = team.filter(
+        (m) => m.name || m.role || m.availability
+      );
+      if (filteredTeam.length > 0) {
+        formData.append(
+          "team",
+          JSON.stringify(
+            filteredTeam.map((member) => ({
+              name: member.name,
+              role: member.role,
+              availability: Number(member.availability),
+            }))
+          )
+        );
+      }
       if (complexity) formData.append("complexity", complexity);
 
       const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/scope`;
@@ -63,7 +99,9 @@ const ScopeUploader: React.FC<ScopeUploaderProps> = ({
         onClose();
       }, 1200);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to process scope.");
+      const apiError = err?.response?.data?.message || "Unrealistic timeline: Insufficient team capacity. Add resources or extend deadline.";
+      setError(apiError);
+      toast.error(apiError);
     } finally {
       setLoading(false);
     }
@@ -118,29 +156,68 @@ const ScopeUploader: React.FC<ScopeUploaderProps> = ({
               className="w-full border rounded p-1"
             />
           </div>
+          {/* Team Members Section */}
           <div>
             <label className="block text-sm font-medium mb-1 text-black">
-              Team (optional, JSON string)
+              Team Members
             </label>
-            <input
-              type="text"
-              value={team}
-              onChange={(e) => setTeam(e.target.value)}
-              className="w-full border rounded p-1"
-              placeholder='e.g. [{"name":"Alice","role":"Dev"}]'
-            />
+            {team.map((member, idx) => (
+              <div key={idx} className="mb-2 flex gap-2 items-center">
+                <input
+                  type="text"
+                  placeholder="Name"
+                  value={member.name}
+                  onChange={(e) => handleTeamChange(idx, "name", e.target.value)}
+                  className="border px-2 py-1 rounded text-xs"
+                />
+                <input
+                  type="text"
+                  placeholder="Role"
+                  value={member.role}
+                  onChange={(e) => handleTeamChange(idx, "role", e.target.value)}
+                  className="border px-2 py-1 rounded text-xs"
+                />
+                <input
+                  type="number"
+                  placeholder="Availability"
+                  value={member.availability}
+                  onChange={(e) => handleTeamChange(idx, "availability", e.target.value)}
+                  className="border px-2 py-1 rounded text-xs w-20"
+                />
+                {team.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => removeTeamMember(idx)}
+                    className="text-red-500 text-xs"
+                  >
+                    X
+                  </button>
+                )}
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addTeamMember}
+              className="text-blue-600 text-xs mb-3"
+            >
+              + Add Team Member
+            </button>
           </div>
+          {/* Complexity Dropdown */}
           <div>
             <label className="block text-sm font-medium mb-1 text-black">
-              Complexity (optional)
+              Complexity
             </label>
-            <input
-              type="text"
+            <select
               value={complexity}
               onChange={(e) => setComplexity(e.target.value)}
-              className="w-full border rounded p-1"
-              placeholder="e.g. High, Medium, Low"
-            />
+              className="w-full border px-3 py-2 rounded text-sm mb-4"
+              required
+            >
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
           </div>
           {error && <div className="text-red-600 text-sm">{error}</div>}
           {success && <div className="text-green-600 text-sm">{success}</div>}
