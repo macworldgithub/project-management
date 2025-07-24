@@ -12,22 +12,23 @@ export default function AddProject() {
   const [complexity, setComplexity] = useState("Medium");
   const [loading, setLoading] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
-  const [team, setTeam] = useState([
-    { name: "", role: "", availability: "" }
-  ]);
+  const [team, setTeam] = useState([{ name: "", role: "", availability: "" }]);
   const [scopeType, setScopeType] = useState<string>("");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [scopeFile, setScopeFile] = useState<File | null>(null);
   const [scopeTeamString, setScopeTeamString] = useState<string>("");
   const [scopeTeam, setScopeTeam] = useState([
-    { name: "", role: "", availability: "" }
+    { name: "", role: "", availability: "" },
   ]);
 
   // Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     }
@@ -41,7 +42,11 @@ export default function AddProject() {
     };
   }, [dropdownOpen]);
 
-  const handleTeamChange = (idx: number, field: "name" | "role" | "availability", value: string) => {
+  const handleTeamChange = (
+    idx: number,
+    field: "name" | "role" | "availability",
+    value: string
+  ) => {
     const updated = [...team];
     updated[idx][field] = value;
     setTeam(updated);
@@ -55,7 +60,11 @@ export default function AddProject() {
     setTeam(team.filter((_, i) => i !== idx));
   };
 
-  const handleScopeTeamChange = (idx: number, field: "name" | "role" | "availability", value: string) => {
+  const handleScopeTeamChange = (
+    idx: number,
+    field: "name" | "role" | "availability",
+    value: string
+  ) => {
     const updated = [...scopeTeam];
     updated[idx][field] = value;
     setScopeTeam(updated);
@@ -68,22 +77,24 @@ export default function AddProject() {
   };
 
   const handleSubmit = async () => {
-    if (!name || !deliveryDate || team.some(m => !m.name || !m.role || !m.availability)) return;
+    if (
+      !name ||
+      !deliveryDate ||
+      team.some((m) => !m.name || !m.role || !m.availability)
+    )
+      return;
     setLoading(true);
     try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`,
-        {
-          name,
-          deliveryDate: new Date(deliveryDate).toISOString(),
-          complexity,
-          team: team.map(member => ({
-            name: member.name,
-            role: member.role,
-            availability: Number(member.availability)
-          })),
-        }
-      );
+      await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`, {
+        name,
+        deliveryDate: new Date(deliveryDate).toISOString(),
+        complexity,
+        team: team.map((member) => ({
+          name: member.name,
+          role: member.role,
+          availability: Number(member.availability),
+        })),
+      });
       setSuccessMsg("Project created successfully!");
       setShowModal(false);
       setName("");
@@ -93,9 +104,9 @@ export default function AddProject() {
     } catch (error: any) {
       toast.error(
         error.response?.data?.error ||
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to create project: Unknown error"
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create project: Unknown error"
       );
     } finally {
       setLoading(false);
@@ -109,7 +120,7 @@ export default function AddProject() {
       return;
     }
     // Team validation
-    if (scopeTeam.some(m => !m.name || !m.role || !m.availability)) {
+    if (scopeTeam.some((m) => !m.name || !m.role || !m.availability)) {
       toast.error("Please fill all team member fields.");
       return;
     }
@@ -117,12 +128,20 @@ export default function AddProject() {
     try {
       const formData = new FormData();
       formData.append("scope", scopeFile);
-      formData.append("deliveryDate", deliveryDate ? new Date(deliveryDate).toISOString() : "");
-      formData.append("team", JSON.stringify(scopeTeam.map(member => ({
-        name: member.name,
-        role: member.role,
-        availability: Number(member.availability)
-      }))));
+      formData.append(
+        "deliveryDate",
+        deliveryDate ? new Date(deliveryDate).toISOString() : ""
+      );
+      formData.append(
+        "team",
+        JSON.stringify(
+          scopeTeam.map((member) => ({
+            name: member.name,
+            role: member.role,
+            availability: Number(member.availability),
+          }))
+        )
+      );
       formData.append("complexity", complexity);
       await axios.post(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/scope`,
@@ -142,9 +161,9 @@ export default function AddProject() {
     } catch (error: any) {
       toast.error(
         error.response?.data?.error ||
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to create project with scope file: Unknown error"
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to create project with scope file: Unknown error"
       );
     } finally {
       setLoading(false);
@@ -159,7 +178,21 @@ export default function AddProject() {
           onClick={() => setDropdownOpen((open) => !open)}
         >
           + Add New Project
-          <svg className={`w-4 h-4 transition-transform duration-150 ${dropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+          <svg
+            className={`w-4 h-4 transition-transform duration-150 ${
+              dropdownOpen ? "rotate-180" : ""
+            }`}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
         </button>
         {dropdownOpen && (
           <div className="absolute left-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-20 animate-fade-in">
@@ -172,7 +205,9 @@ export default function AddProject() {
               }}
             >
               <span className="font-semibold">With Manually Scope</span>
-              <div className="text-xs text-gray-500">Enter project details manually</div>
+              <div className="text-xs text-gray-500">
+                Enter project details manually
+              </div>
             </button>
             <button
               className="block w-full text-left px-5 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-b-lg transition-colors"
@@ -183,7 +218,9 @@ export default function AddProject() {
               }}
             >
               <span className="font-semibold">With Scope File</span>
-              <div className="text-xs text-gray-500">Upload a file for project scope</div>
+              <div className="text-xs text-gray-500">
+                Upload a file for project scope
+              </div>
             </button>
           </div>
         )}
@@ -205,48 +242,72 @@ export default function AddProject() {
                 <h2 className="text-lg font-semibold mb-4 text-gray-800">
                   Create New Project (With Scope File)
                 </h2>
-                <label className="block text-sm font-medium mb-1">Project scope as a file (PDF, DOCX, or TXT, &lt;10MB)</label>
+                <label className="block text-sm font-medium mb-1">
+                  Project scope as a file (PDF, DOCX, or TXT, &lt;10MB)
+                </label>
                 <input
                   type="file"
                   accept=".pdf,.docx,.txt"
-                  onChange={e => setScopeFile(e.target.files ? e.target.files[0] : null)}
+                  onChange={(e) =>
+                    setScopeFile(e.target.files ? e.target.files[0] : null)
+                  }
                   className="w-full border px-3 py-2 rounded text-sm mb-3"
                   required
                 />
-                <label className="block text-sm font-medium mb-1">Delivery Date (ISO 8601)</label>
+                <label className="block text-sm font-medium mb-1">
+                  Delivery Date (ISO 8601)
+                </label>
                 <input
                   type="date"
                   value={deliveryDate}
-                  onChange={e => setDeliveryDate(e.target.value)}
+                  onChange={(e) => setDeliveryDate(e.target.value)}
                   className="w-full border px-3 py-2 rounded text-sm mb-3"
                   required
                 />
-                <label className="block text-sm font-medium mb-1">Team Members</label>
+                <label className="block text-sm font-medium mb-1">
+                  Team Members
+                </label>
                 {scopeTeam.map((member, idx) => (
                   <div key={idx} className="mb-2 flex gap-2 items-center">
                     <input
                       type="text"
                       placeholder="Name"
                       value={member.name}
-                      onChange={e => handleScopeTeamChange(idx, "name", e.target.value)}
+                      onChange={(e) =>
+                        handleScopeTeamChange(idx, "name", e.target.value)
+                      }
                       className="border  py-1 rounded text-xs"
                     />
                     <input
                       type="text"
                       placeholder="Role"
                       value={member.role}
-                      onChange={e => handleScopeTeamChange(idx, "role", e.target.value)}
+                      onChange={(e) =>
+                        handleScopeTeamChange(idx, "role", e.target.value)
+                      }
                       className="border  py-1 rounded text-xs"
                     />
                     <input
                       type="number"
                       placeholder="Availability"
                       value={member.availability}
-                      onChange={e => handleScopeTeamChange(idx, "availability", e.target.value)}
+                      onChange={(e) =>
+                        handleScopeTeamChange(
+                          idx,
+                          "availability",
+                          e.target.value
+                        )
+                      }
                       className="border px-2 py-1 rounded text-xs w-20"
                     />
                     {scopeTeam.length > 1 && (
-                      <button type="button" onClick={() => removeScopeTeamMember(idx)} className="text-red-500 text-xs">X</button>
+                      <button
+                        type="button"
+                        onClick={() => removeScopeTeamMember(idx)}
+                        className="text-red-500 text-xs"
+                      >
+                        X
+                      </button>
                     )}
                   </div>
                 ))}
@@ -257,7 +318,9 @@ export default function AddProject() {
                 >
                   + Add Team Member
                 </button>
-                <label className="block text-sm font-medium mb-1">Complexity</label>
+                <label className="block text-sm font-medium mb-1">
+                  Complexity
+                </label>
                 <select
                   value={complexity}
                   onChange={(e) => setComplexity(e.target.value)}
@@ -314,32 +377,46 @@ export default function AddProject() {
 
                 {/* Team Members Section */}
                 <div className="mb-4">
-                  <label className="block text-sm font-medium mb-1">Team Members</label>
+                  <label className="block text-sm font-medium mb-1">
+                    Team Members
+                  </label>
                   {team.map((member, idx) => (
                     <div key={idx} className="mb-2 flex gap-2 items-center">
                       <input
                         type="text"
                         placeholder="Name"
                         value={member.name}
-                        onChange={e => handleTeamChange(idx, "name", e.target.value)}
+                        onChange={(e) =>
+                          handleTeamChange(idx, "name", e.target.value)
+                        }
                         className="border px-2 py-1 rounded text-xs"
                       />
                       <input
                         type="text"
                         placeholder="Role"
                         value={member.role}
-                        onChange={e => handleTeamChange(idx, "role", e.target.value)}
+                        onChange={(e) =>
+                          handleTeamChange(idx, "role", e.target.value)
+                        }
                         className="border px-2 py-1 rounded text-xs"
                       />
                       <input
                         type="number"
                         placeholder="Availability"
                         value={member.availability}
-                        onChange={e => handleTeamChange(idx, "availability", e.target.value)}
+                        onChange={(e) =>
+                          handleTeamChange(idx, "availability", e.target.value)
+                        }
                         className="border px-2 py-1 rounded text-xs w-20"
                       />
                       {team.length > 1 && (
-                        <button type="button" onClick={() => removeTeamMember(idx)} className="text-red-500 text-xs">X</button>
+                        <button
+                          type="button"
+                          onClick={() => removeTeamMember(idx)}
+                          className="text-red-500 text-xs"
+                        >
+                          X
+                        </button>
                       )}
                     </div>
                   ))}
