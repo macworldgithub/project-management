@@ -69,6 +69,17 @@ export default function ProjectsPage() {
   const [detailLoading, setDetailLoading] = useState<boolean>(false);
   const [openTimelineId, setOpenTimelineId] = useState<string | null>(null);
 
+  // Add state for editing a task
+  const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<any>(null);
+  const [editTaskForm, setEditTaskForm] = useState({
+    status: '',
+    assignee: '',
+    startDate: '',
+    endDate: '',
+  });
+  const [editTaskLoading, setEditTaskLoading] = useState(false);
+
   useEffect(() => {
     async function fetchProjects() {
       try {
@@ -131,6 +142,50 @@ export default function ProjectsPage() {
       setProjectDetail({ error: "Failed to load project details" });
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  // Handler to open edit modal
+  const handleEditTaskClick = (task: any) => {
+    setTaskToEdit(task);
+    setEditTaskForm({
+      status: task.status || '',
+      assignee: task.assignee || '',
+      startDate: task.startDate ? task.startDate.slice(0, 16) : '',
+      endDate: task.endDate ? task.endDate.slice(0, 16) : '',
+    });
+    setEditTaskModalOpen(true);
+  };
+
+  // Handler for form changes
+  const handleEditTaskFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setEditTaskForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Handler to save task changes
+  const handleSaveTaskEdit = async () => {
+    if (!taskToEdit) return;
+    setEditTaskLoading(true);
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskToEdit.taskId}`,
+        {
+          status: editTaskForm.status,
+          assignee: editTaskForm.assignee,
+          startDate: new Date(editTaskForm.startDate).toISOString(),
+          endDate: new Date(editTaskForm.endDate).toISOString(),
+        }
+      );
+      toast.success('Task updated successfully');
+      // Refresh timeline for the project
+      if (openTimelineId) await fetchProjectTimeline(openTimelineId);
+      setEditTaskModalOpen(false);
+      setTaskToEdit(null);
+    } catch (err) {
+      toast.error('Failed to update task');
+    } finally {
+      setEditTaskLoading(false);
     }
   };
 
@@ -270,64 +325,77 @@ export default function ProjectsPage() {
                   {/* Timeline block inside the map */}
                   {openTimelineId === proj.projectId &&
                     projectTimelines[proj.projectId] && (
-                      <div className="mt-4 bg-gray-100 rounded-lg p-3 space-y-4">
-                        <div>
-                          <h4 className="text-sm font-semibold mb-2 text-gray-700">
-                            Tasks
-                          </h4>
-                          {projectTimelines[proj.projectId].tasks.map(
-                            (task) => (
+                      <div className="mt-4 bg-gradient-to-br from-white to-blue-50 rounded-2xl p-6 shadow-xl">
+                        {/* Tasks Section */}
+                        <div className="space-y-4">
+                          <h4 className="text-lg font-extrabold text-blue-800 mb-2 tracking-wide">Tasks</h4>
+                          {projectTimelines[proj.projectId].tasks.length === 0 ? (
+                            <div className="text-gray-400 text-sm">No tasks found.</div>
+                          ) : (
+                            projectTimelines[proj.projectId].tasks.map((task) => (
                               <div
                                 key={task.taskId}
-                                className="p-2 mb-2 rounded border bg-white text-sm text-gray-800"
+                                className={`relative flex flex-col gap-2 p-4 rounded-xl shadow-lg bg-gradient-to-br from-white to-blue-50 border-l-8 ${
+                                  task.status === 'Done'
+                                    ? 'border-green-400'
+                                    : task.status === 'In Progress'
+                                    ? 'border-yellow-400'
+                                    : 'border-gray-300'
+                                } hover:scale-[1.02] transition`}
                               >
-                                <div className="font-medium">{task.name}</div>
-                                <div className="text-xs text-gray-500">
-                                  {new Date(
-                                    task.startDate
-                                  ).toLocaleDateString()}{" "}
-                                  -{" "}
-                                  {new Date(task.endDate).toLocaleDateString()}
+                                <div className="flex justify-between items-center">
+                                  <span className="font-bold text-lg">{task.name}</span>
+                                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    task.status === 'Done'
+                                      ? 'bg-green-100 text-green-700'
+                                      : task.status === 'In Progress'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-gray-200 text-gray-700'
+                                  }`}>
+                                    {task.status}
+                                  </span>
                                 </div>
-                                <div className="text-xs">
-                                  Assignee: {task.assignee}
+                                <div className="flex flex-wrap gap-4 text-xs text-gray-700 items-center">
+                                  <span className="flex items-center gap-1"><FaUserAlt /> {task.assignee}</span>
+                                  <span className="flex items-center gap-1"><b>Role:</b> {task.role}</span>
+                                  <span className="flex items-center gap-1"><b>Priority:</b> {task.priority}</span>
                                 </div>
-                                <div className="text-xs">Role: {task.role}</div>
-                                <div className="text-xs">
-                                  Status: {task.status}
+                                <div className="flex flex-wrap gap-4 text-xs text-gray-500 items-center">
+                                  <span className="flex items-center gap-1"><b>Start:</b> {new Date(task.startDate).toLocaleDateString()}</span>
+                                  <span className="flex items-center gap-1"><b>End:</b> {new Date(task.endDate).toLocaleDateString()}</span>
                                 </div>
-                                <div className="text-xs">
-                                  Priority: {task.priority}
+                                <div className="flex justify-end">
+                                  <button
+                                    className="bg-gradient-to-r from-blue-600 to-blue-400 text-white px-4 py-1 rounded-full shadow hover:from-blue-700 hover:to-blue-500 text-xs"
+                                    onClick={() => handleEditTaskClick(task)}
+                                  >
+                                    Update Task
+                                  </button>
                                 </div>
                               </div>
-                            )
+                            ))
                           )}
                         </div>
-                        <div>
-                          <h4 className="text-sm font-semibold mb-2 text-gray-700">
-                            Milestones
-                          </h4>
-                          {projectTimelines[proj.projectId]?.milestones ? (
-                            projectTimelines[proj.projectId].milestones.map(
-                              (milestone: any) => (
-                                <div
-                                  key={milestone._id}
-                                  className="p-2 mb-1 rounded border bg-white text-sm text-gray-800"
-                                >
-                                  <div>{milestone.name}</div>
-                                  <div className="text-xs text-gray-500">
-                                    {new Date(
-                                      milestone.date
-                                    ).toLocaleDateString()}
+                        {/* Milestones Section (Timeline style) */}
+                        <div className="mt-8">
+                          <h4 className="text-lg font-extrabold text-purple-800 mb-2 tracking-wide">Milestones</h4>
+                          <div className="relative pl-6">
+                            {projectTimelines[proj.projectId]?.milestones && projectTimelines[proj.projectId].milestones.length > 0 ? (
+                              projectTimelines[proj.projectId].milestones.map((milestone, idx) => (
+                                <div key={milestone._id} className="mb-6 flex items-center">
+                                  <div className="absolute left-0 top-2 w-3 h-3 rounded-full bg-purple-500 border-2 border-white shadow"></div>
+                                  <div className="ml-6 bg-purple-50 rounded-lg px-4 py-2 shadow flex flex-col">
+                                    <span className="font-semibold">{milestone.name}</span>
+                                    <span className="text-xs text-gray-600">{new Date(milestone.date).toLocaleDateString()}</span>
                                   </div>
                                 </div>
-                              )
-                            )
-                          ) : (
-                            <div className="text-gray-500 text-sm">
-                              Loading timeline...
-                            </div>
-                          )}
+                              ))
+                            ) : (
+                              <div className="text-gray-400 text-sm">No milestones found.</div>
+                            )}
+                            {/* Vertical line for timeline */}
+                            <div className="absolute left-1.5 top-4 bottom-0 w-0.5 bg-purple-200"></div>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -434,7 +502,75 @@ export default function ProjectsPage() {
             </div>
           </div>
         )}
+        {/* Edit Task Modal */}
+        {editTaskModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
+                onClick={() => setEditTaskModalOpen(false)}
+              >
+                <IoCloseCircleOutline size={24} />
+              </button>
+              <h2 className="text-lg font-bold mb-4 text-black">Edit Task</h2>
+              <div className="mb-3">
+                <label className="block text-xs mb-1">Status</label>
+                <select
+                  name="status"
+                  value={editTaskForm.status}
+                  onChange={handleEditTaskFormChange}
+                  className="w-full border rounded px-2 py-1 text-sm"
+                >
+                  <option value="">Select status</option>
+                  <option value="To Do">To Do</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Done">Done</option>
+                </select>
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs mb-1">Assignee</label>
+                <input
+                  name="assignee"
+                  value={editTaskForm.assignee}
+                  onChange={handleEditTaskFormChange}
+                  className="w-full border rounded px-2 py-1 text-sm"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs mb-1">Start Date</label>
+                <input
+                  type="datetime-local"
+                  name="startDate"
+                  value={editTaskForm.startDate}
+                  onChange={handleEditTaskFormChange}
+                  className="w-full border rounded px-2 py-1 text-sm"
+                />
+              </div>
+              <div className="mb-3">
+                <label className="block text-xs mb-1">End Date</label>
+                <input
+                  type="datetime-local"
+                  name="endDate"
+                  value={editTaskForm.endDate}
+                  onChange={handleEditTaskFormChange}
+                  className="w-full border rounded px-2 py-1 text-sm"
+                />
+              </div>
+              <button
+                className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
+                onClick={handleSaveTaskEdit}
+                disabled={editTaskLoading}
+              >
+                {editTaskLoading ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+
+
+
+
