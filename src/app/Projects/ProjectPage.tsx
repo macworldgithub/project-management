@@ -49,7 +49,9 @@ type Timeline = {
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [projectsWithTimeline, setProjectsWithTimeline] = useState<{ [id: string]: boolean }>({});
+  const [projectsWithTimeline, setProjectsWithTimeline] = useState<{
+    [id: string]: boolean;
+  }>({});
 
   const [projectTimelines, setProjectTimelines] = useState<
     Record<string, Timeline>
@@ -72,7 +74,9 @@ export default function ProjectsPage() {
   const [openTimelineId, setOpenTimelineId] = useState<string | null>(null);
 
   // Add state for ScopeUploader modal
-  const [scopeUploadProjectId, setScopeUploadProjectId] = useState<string | null>(null);
+  const [scopeUploadProjectId, setScopeUploadProjectId] = useState<
+    string | null
+  >(null);
 
   // Move fetchProjects outside useEffect for reuse
   const fetchProjects = async () => {
@@ -246,14 +250,15 @@ export default function ProjectsPage() {
                       {proj.name}
                     </h2>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${proj.status === "Active"
-                        ? "bg-green-100 text-green-700"
-                        : proj.status === "On Hold"
+                      className={`text-xs px-2 py-1 rounded-full ${
+                        proj.status === "Active"
+                          ? "bg-green-100 text-green-700"
+                          : proj.status === "On Hold"
                           ? "bg-yellow-100 text-yellow-800"
                           : proj.status === "Delayed"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
+                          ? "bg-red-100 text-red-700"
+                          : "bg-blue-100 text-blue-700"
+                      }`}
                     >
                       {proj.status}
                     </span>
@@ -371,7 +376,7 @@ export default function ProjectsPage() {
                   {!projectsWithTimeline[proj.projectId] && (
                     <button
                       className="mt-2 bg-[#0E1422] ml-2 text-white px-3 py-1 rounded hover:bg-yellow-600 transition text-sm"
-                      onClick={e => {
+                      onClick={(e) => {
                         e.stopPropagation();
                         setScopeUploadProjectId(proj.projectId);
                       }}
@@ -400,10 +405,11 @@ export default function ProjectsPage() {
                 {Array.from({ length: totalPages }).map((_, i) => (
                   <button
                     key={i}
-                    className={`px-3 py-1 border rounded-md ${currentPage === i + 1
-                      ? "bg-blue-600 text-white"
-                      : "hover:bg-gray-200"
-                      }`}
+                    className={`px-3 py-1 border rounded-md ${
+                      currentPage === i + 1
+                        ? "bg-blue-600 text-white"
+                        : "hover:bg-gray-200"
+                    }`}
                     onClick={() => setCurrentPage(i + 1)}
                   >
                     {i + 1}
@@ -456,8 +462,8 @@ export default function ProjectsPage() {
                     Delivery Date:{" "}
                     {projectDetail.deliveryDate
                       ? new Date(
-                        projectDetail.deliveryDate
-                      ).toLocaleDateString()
+                          projectDetail.deliveryDate
+                        ).toLocaleDateString()
                       : ""}
                   </div>
                   <div className="mb-2 text-gray-600">
