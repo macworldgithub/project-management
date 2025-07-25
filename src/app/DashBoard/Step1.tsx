@@ -281,7 +281,7 @@ const TimelineDashboard = () => {
                     stroke="#3b82f6"
                     fillOpacity={1}
                     fill="url(#colorCompleted)"
-                    name="% Tasks Completed"
+                    name="% Tasks"
                     strokeWidth={3}
                     dot={{ r: 5, fill: "#3b82f6" }}
                     activeDot={{ r: 7 }}

@@ -8,6 +8,7 @@ import AddProject from "./AddProject";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
 import ScopeUploader from "./ScopeUploader";
+import { IoMdCloseCircleOutline } from "react-icons/io";
 
 // Define types for project, team member, task, and milestone
 interface TeamMember {
@@ -77,7 +78,9 @@ export default function ProjectsPage() {
   const router = useRouter();
 
   // Modal and detail state
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
   const [projectDetail, setProjectDetail] = useState<
     Project | { error: string } | null
   >(null);
@@ -86,9 +89,9 @@ export default function ProjectsPage() {
   const [openTimelineId, setOpenTimelineId] = useState<string | null>(null);
 
   // ScopeUploader modal state
-  const [scopeUploadProjectId, setScopeUploadProjectId] = useState<string | null>(
-    null
-  );
+  const [scopeUploadProjectId, setScopeUploadProjectId] = useState<
+    string | null
+  >(null);
 
   // Edit Timeline modal state
   const [editTimelineModalOpen, setEditTimelineModalOpen] =
@@ -102,7 +105,9 @@ export default function ProjectsPage() {
 
   // Edit Team modal state
   const [editTeamModalOpen, setEditTeamModalOpen] = useState<boolean>(false);
-  const [editTeamProjectId, setEditTeamProjectId] = useState<string | null>(null);
+  const [editTeamProjectId, setEditTeamProjectId] = useState<string | null>(
+    null
+  );
   const [editTeamMembers, setEditTeamMembers] = useState<TeamMember[]>([]);
   const [teamLoading, setTeamLoading] = useState<boolean>(false);
 
@@ -119,17 +124,14 @@ export default function ProjectsPage() {
       const res = await axios.get<{
         data: Project[];
         pagination: Pagination;
-      }>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/search`,
-        {
-          params: {
-            search: searchQuery,
-            status: statusFilter,
-            page,
-            limit: pagination.itemsPerPage,
-          },
-        }
-      );
+      }>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/search`, {
+        params: {
+          search: searchQuery,
+          status: statusFilter,
+          page,
+          limit: pagination.itemsPerPage,
+        },
+      });
       setProjects(Array.isArray(res.data.data) ? res.data.data : []);
       setPagination(res.data.pagination);
     } catch (err) {
@@ -390,7 +392,11 @@ export default function ProjectsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-black">
           <h1 className="text-2xl font-bold">Projects</h1>
           <span className="text-sm text-gray-500 mt-1 sm:mt-0">
-            {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
+            {new Date().toLocaleDateString(undefined, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
           </span>
         </div>
         <div className="flex items-center space-x-4">
@@ -485,7 +491,10 @@ export default function ProjectsPage() {
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
                     <span>
-                      Due: {proj.deliveryDate ? new Date(proj.deliveryDate).toLocaleDateString() : ""}
+                      Due:{" "}
+                      {proj.deliveryDate
+                        ? new Date(proj.deliveryDate).toLocaleDateString()
+                        : ""}
                     </span>
                     <div className="flex space-x-1">
                       {Array.from({ length: proj.team?.length || 0 }).map(
@@ -551,21 +560,33 @@ export default function ProjectsPage() {
                           <h4 className="text-sm font-semibold mb-2 text-gray-700">
                             Tasks
                           </h4>
-                          {projectTimelines[proj.projectId].tasks.map((task) => (
-                            <div
-                              key={task.taskId}
-                              className="p-2 mb-2 rounded border bg-white text-sm text-gray-800"
-                            >
-                              <div className="font-medium">{task.name}</div>
-                              <div className="text-xs text-gray-500">
-                                {new Date(task.startDate).toLocaleDateString()} - {new Date(task.endDate).toLocaleDateString()}
+                          {projectTimelines[proj.projectId].tasks.map(
+                            (task) => (
+                              <div
+                                key={task.taskId}
+                                className="p-2 mb-2 rounded border  text-sm text-gray-800"
+                              >
+                                <div className="font-medium">{task.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  {new Date(
+                                    task.startDate
+                                  ).toLocaleDateString()}{" "}
+                                  -{" "}
+                                  {new Date(task.endDate).toLocaleDateString()}
+                                </div>
+                                <div className="text-xs">
+                                  Assignee: {task.assignee}
+                                </div>
+                                <div className="text-xs">Role: {task.role}</div>
+                                <div className="text-xs">
+                                  Status: {task.status}
+                                </div>
+                                <div className="text-xs">
+                                  Priority: {task.priority}
+                                </div>
                               </div>
-                              <div className="text-xs">Assignee: {task.assignee}</div>
-                              <div className="text-xs">Role: {task.role}</div>
-                              <div className="text-xs">Status: {task.status}</div>
-                              <div className="text-xs">Priority: {task.priority}</div>
-                            </div>
-                          ))}
+                            )
+                          )}
                         </div>
                         <div>
                           <h4 className="text-sm font-semibold mb-2 text-gray-700">
@@ -580,7 +601,9 @@ export default function ProjectsPage() {
                                 >
                                   <div>{milestone.name}</div>
                                   <div className="text-xs text-gray-500">
-                                    {new Date(milestone.date).toLocaleDateString()}
+                                    {new Date(
+                                      milestone.date
+                                    ).toLocaleDateString()}
                                   </div>
                                 </div>
                               )
@@ -599,8 +622,16 @@ export default function ProjectsPage() {
             {/* Pagination */}
             <div className="flex justify-between items-center mt-6 text-xs text-gray-600">
               <div>
-                Showing {pagination.totalItems === 0 ? 0 : (pagination.currentPage - 1) * pagination.itemsPerPage + 1}-
-                {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of {pagination.totalItems} projects
+                Showing{" "}
+                {pagination.totalItems === 0
+                  ? 0
+                  : (pagination.currentPage - 1) * pagination.itemsPerPage + 1}
+                -
+                {Math.min(
+                  pagination.currentPage * pagination.itemsPerPage,
+                  pagination.totalItems
+                )}{" "}
+                of {pagination.totalItems} projects
               </div>
               <div className="flex items-center space-x-2">
                 <button
@@ -662,14 +693,20 @@ export default function ProjectsPage() {
                     Complexity: {projectDetail.complexity}
                   </div>
                   <div className="mb-2 text-gray-600">
-                    Delivery Date: {projectDetail.deliveryDate ? new Date(projectDetail.deliveryDate).toLocaleDateString() : ""}
+                    Delivery Date:{" "}
+                    {projectDetail.deliveryDate
+                      ? new Date(
+                          projectDetail.deliveryDate
+                        ).toLocaleDateString()
+                      : ""}
                   </div>
                   <div className="mb-2 text-gray-600">
                     Team:
                     <ul className="list-disc ml-6">
                       {projectDetail.team?.map((member, idx) => (
                         <li key={member._id || idx}>
-                          {member.name} ({member.role}) - Availability: {member.availability}
+                          {member.name} ({member.role}) - Availability:{" "}
+                          {member.availability}
                         </li>
                       ))}
                     </ul>
@@ -683,7 +720,8 @@ export default function ProjectsPage() {
                 </>
               ) : (
                 <div className="text-red-500">
-                  {(projectDetail as { error?: string })?.error || "No details found."}
+                  {(projectDetail as { error?: string })?.error ||
+                    "No details found."}
                 </div>
               )}
             </div>
@@ -699,26 +737,37 @@ export default function ProjectsPage() {
               >
                 <IoCloseCircleOutline size={24} />
               </button>
-              <h2 className="text-xl font-bold mb-4 text-black">Edit Timeline</h2>
+              <h2 className="text-xl font-bold mb-4 text-black">
+                Edit Timeline
+              </h2>
               {timelineLoading ? (
                 <div className="text-center py-10">Loading timeline...</div>
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <h3 className="text-lg font-semibold mb-2 text-gray-700">Tasks</h3>
+                    <h3 className="text-lg font-semibold mb-2 text-gray-700">
+                      Tasks
+                    </h3>
                     {editTasks.length > 0 ? (
                       editTasks.map((task, index) => (
-                        <div key={task.taskId} className="p-3 mb-2 border rounded bg-gray-50">
+                        <div
+                          key={task.taskId}
+                          className="p-3 mb-2  rounded bg-gray-50"
+                        >
                           <input
                             type="text"
                             value={task.name}
-                            onChange={(e) => handleTaskChange(index, "name", e.target.value)}
+                            onChange={(e) =>
+                              handleTaskChange(index, "name", e.target.value)
+                            }
                             className="w-full border rounded p-1 mb-2 text-sm"
                             placeholder="Task Name"
                           />
                           <select
                             value={task.status}
-                            onChange={(e) => handleTaskChange(index, "status", e.target.value)}
+                            onChange={(e) =>
+                              handleTaskChange(index, "status", e.target.value)
+                            }
                             className="w-full border rounded p-1 mb-2 text-sm"
                           >
                             <option value="To Do">To Do</option>
@@ -729,20 +778,34 @@ export default function ProjectsPage() {
                           <input
                             type="text"
                             value={task.assignee}
-                            onChange={(e) => handleTaskChange(index, "assignee", e.target.value)}
+                            onChange={(e) =>
+                              handleTaskChange(
+                                index,
+                                "assignee",
+                                e.target.value
+                              )
+                            }
                             className="w-full border rounded p-1 mb-2 text-sm"
                             placeholder="Assignee"
                           />
                           <input
                             type="text"
                             value={task.role}
-                            onChange={(e) => handleTaskChange(index, "role", e.target.value)}
+                            onChange={(e) =>
+                              handleTaskChange(index, "role", e.target.value)
+                            }
                             className="w-full border rounded p-1 mb-2 text-sm"
                             placeholder="Role"
                           />
                           <select
                             value={task.priority}
-                            onChange={(e) => handleTaskChange(index, "priority", e.target.value)}
+                            onChange={(e) =>
+                              handleTaskChange(
+                                index,
+                                "priority",
+                                e.target.value
+                              )
+                            }
                             className="w-full border rounded p-1 mb-2 text-sm"
                           >
                             <option value="Low">Low</option>
@@ -752,43 +815,72 @@ export default function ProjectsPage() {
                           <input
                             type="date"
                             value={task.startDate.split("T")[0]}
-                            onChange={(e) => handleTaskChange(index, "startDate", e.target.value)}
+                            onChange={(e) =>
+                              handleTaskChange(
+                                index,
+                                "startDate",
+                                e.target.value
+                              )
+                            }
                             className="w-full border rounded p-1 mb-2 text-sm"
                           />
                           <input
                             type="date"
                             value={task.endDate.split("T")[0]}
-                            onChange={(e) => handleTaskChange(index, "endDate", e.target.value)}
+                            onChange={(e) =>
+                              handleTaskChange(index, "endDate", e.target.value)
+                            }
                             className="w-full border rounded p-1 mb-2 text-sm"
                           />
                         </div>
                       ))
                     ) : (
-                      <div className="text-gray-500 text-sm">No tasks available</div>
+                      <div className="text-gray-500 text-sm">
+                        No tasks available
+                      </div>
                     )}
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold mb-2 text-gray-700">Milestones</h3>
+                    <h3 className="text-lg font-semibold mb-2 text-gray-700">
+                      Milestones
+                    </h3>
                     {editMilestones.length > 0 ? (
                       editMilestones.map((milestone, index) => (
-                        <div key={milestone._id} className="p-3 mb-2 border rounded bg-gray-50">
+                        <div
+                          key={milestone._id}
+                          className="p-3 mb-2  rounded bg-gray-50"
+                        >
                           <input
                             type="text"
                             value={milestone.name}
-                            onChange={(e) => handleMilestoneChange(index, "name", e.target.value)}
+                            onChange={(e) =>
+                              handleMilestoneChange(
+                                index,
+                                "name",
+                                e.target.value
+                              )
+                            }
                             className="w-full border rounded p-1 mb-2 text-sm"
                             placeholder="Milestone Name"
                           />
                           <input
                             type="date"
                             value={milestone.date.split("T")[0]}
-                            onChange={(e) => handleMilestoneChange(index, "date", e.target.value)}
+                            onChange={(e) =>
+                              handleMilestoneChange(
+                                index,
+                                "date",
+                                e.target.value
+                              )
+                            }
                             className="w-full border rounded p-1 mb-2 text-sm"
                           />
                         </div>
                       ))
                     ) : (
-                      <div className="text-gray-500 text-sm">No milestones available</div>
+                      <div className="text-gray-500 text-sm">
+                        No milestones available
+                      </div>
                     )}
                   </div>
                   <button
@@ -806,7 +898,7 @@ export default function ProjectsPage() {
         {/* Edit Team Modal */}
         {editTeamModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
+            <div className="bg-white rounded-lg p-6 w-full max-w-lg relative">
               <button
                 className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
                 onClick={() => setEditTeamModalOpen(false)}
@@ -852,7 +944,7 @@ export default function ProjectsPage() {
                       onClick={() => removeTeamMember(index)}
                       className="text-red-500 text-xs"
                     >
-                      X
+                      <IoMdCloseCircleOutline size={20} />
                     </button>
                   </div>
                 ))}
@@ -883,31 +975,45 @@ export default function ProjectsPage() {
               >
                 <IoCloseCircleOutline size={24} />
               </button>
-              <h2 className="text-xl font-bold mb-4 text-black">Edit Project</h2>
+              <h2 className="text-xl font-bold mb-4 text-black">
+                Edit Project
+              </h2>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-black">Project Name</label>
+                  <label className="block text-sm font-medium mb-1 text-black">
+                    Project Name
+                  </label>
                   <input
                     type="text"
                     value={editProject.name}
-                    onChange={(e) => handleProjectChange("name", e.target.value)}
+                    onChange={(e) =>
+                      handleProjectChange("name", e.target.value)
+                    }
                     className="w-full border rounded p-1 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-black">Delivery Date</label>
+                  <label className="block text-sm font-medium mb-1 text-black">
+                    Delivery Date
+                  </label>
                   <input
                     type="date"
                     value={editProject.deliveryDate?.split("T")[0] || ""}
-                    onChange={(e) => handleProjectChange("deliveryDate", e.target.value)}
+                    onChange={(e) =>
+                      handleProjectChange("deliveryDate", e.target.value)
+                    }
                     className="w-full border rounded p-1 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-black">Complexity</label>
+                  <label className="block text-sm font-medium mb-1 text-black">
+                    Complexity
+                  </label>
                   <select
                     value={editProject.complexity}
-                    onChange={(e) => handleProjectChange("complexity", e.target.value)}
+                    onChange={(e) =>
+                      handleProjectChange("complexity", e.target.value)
+                    }
                     className="w-full border rounded p-1 text-sm"
                   >
                     <option value="Low">Low</option>
@@ -916,10 +1022,14 @@ export default function ProjectsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-black">Status</label>
+                  <label className="block text-sm font-medium mb-1 text-black">
+                    Status
+                  </label>
                   <select
                     value={editProject.status}
-                    onChange={(e) => handleProjectChange("status", e.target.value)}
+                    onChange={(e) =>
+                      handleProjectChange("status", e.target.value)
+                    }
                     className="w-full border rounded p-1 text-sm"
                   >
                     <option value="Active">Active</option>
@@ -929,7 +1039,9 @@ export default function ProjectsPage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1 text-black">Team Members</label>
+                  <label className="block text-sm font-medium mb-1 text-black">
+                    Team Members
+                  </label>
                   {editProject.team?.map((member, index) => (
                     <div key={index} className="flex gap-2 items-center mb-2">
                       <input
@@ -959,7 +1071,9 @@ export default function ProjectsPage() {
                         value={member.availability}
                         onChange={(e) => {
                           const updatedTeam = [...(editProject.team || [])];
-                          updatedTeam[index].availability = Number(e.target.value);
+                          updatedTeam[index].availability = Number(
+                            e.target.value
+                          );
                           setEditProject({ ...editProject, team: updatedTeam });
                         }}
                         className="border rounded p-1 text-sm w-20"

@@ -211,7 +211,7 @@ export default function AddProject() {
                 setShowModal(true);
               }}
             >
-              <span className="font-semibold">With Manually Scope</span>
+              <span className="font-semibold">Without scope</span>
               <div className="text-xs text-gray-500">
                 Enter project details manually
               </div>
@@ -298,7 +298,9 @@ export default function AddProject() {
                     />
                     <select
                       value={member.role}
-                      onChange={(e) => handleScopeTeamChange(idx, "role", e.target.value)}
+                      onChange={(e) =>
+                        handleScopeTeamChange(idx, "role", e.target.value)
+                      }
                       className="border py-1 rounded text-xs"
                       required
                     >
@@ -417,7 +419,9 @@ export default function AddProject() {
                       />
                       <select
                         value={member.role}
-                        onChange={(e) => handleTeamChange(idx, "role", e.target.value)}
+                        onChange={(e) =>
+                          handleTeamChange(idx, "role", e.target.value)
+                        }
                         className="border px-2 py-1 rounded text-xs"
                         required
                       >
@@ -457,10 +461,6 @@ export default function AddProject() {
                   </button>
                 </div>
 
-
-
-                
-
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
@@ -483,7 +483,3 @@ export default function AddProject() {
     </>
   );
 }
-
-
-
-
