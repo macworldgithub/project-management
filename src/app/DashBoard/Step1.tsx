@@ -176,7 +176,7 @@ const TimelineDashboard = () => {
         </div>
         <div className="bg-white p-4 rounded-lg shadow text-base">
           <div className="flex items-center justify-between text-sm text-gray-500">
-            <span>On - Time %</span>
+            <span>On - Time </span>
             {/* <FaClock className="text-green-400" size={24} /> */}
           </div>
           {/* <div className="text-2xl font-bold mt-2">86%</div> */}
