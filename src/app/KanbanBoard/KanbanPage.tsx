@@ -13,7 +13,7 @@ type Task = {
   desc: string;
   assignee: string;
   date: string;
-  level: 'Low' | 'Medium' | 'High' | 'Completed';
+  level: 'To Do' | 'Not Started' | 'In Progress' | 'Delayed' | 'Completed' | 'At Risk' | 'Done' | 'Active';
   tags: string[];
 };
 
@@ -93,7 +93,6 @@ export default function KanbanPage() {
   const [board, setBoard] = useState<Column[]>([
     { title: 'To Do', tasks: [] },
     { title: 'In Progress', tasks: [] },
-    { title: 'Review', tasks: [] },
     { title: 'Done', tasks: [] },
   ]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -134,8 +133,7 @@ export default function KanbanPage() {
         // Group tasks by status
         const newBoard: Column[] = [
           { title: 'To Do', tasks: tasks.filter(task => task.level === 'To Do' || task.level === 'Not Started') },
-          { title: 'In Progress', tasks: tasks.filter(task => task.level === 'In Progress' || task.level === 'Active') },
-          { title: 'Review', tasks: tasks.filter(task => task.level === 'Review') },
+          { title: 'In Progress', tasks: tasks.filter(task => task.level === 'In Progress' || task.level === 'Active' || task.level === 'Delayed' || task.level === 'At Risk') },
           { title: 'Done', tasks: tasks.filter(task => task.level === 'Completed' || task.level === 'Done') },
         ];
         setBoard(newBoard);
@@ -146,7 +144,6 @@ export default function KanbanPage() {
         setBoard([
           { title: 'To Do', tasks: [] },
           { title: 'In Progress', tasks: [] },
-          { title: 'Review', tasks: [] },
           { title: 'Done', tasks: [] },
         ]);
       } finally {
@@ -215,7 +212,7 @@ export default function KanbanPage() {
         ) : error ? (
           <div className="text-center text-red-500">{error}</div>
         ) : (
-          <div className="flex gap-4 w-[200%] sm:w-[140%] lg:w-full">
+          <div className="flex gap-4 w-[150%] sm:w-[120%] lg:w-full">
             {board.map((col, colIdx) => (
               <div key={colIdx} className="flex-1 min-w-[250px]">
                 <div className="bg-white rounded-lg shadow p-3">
