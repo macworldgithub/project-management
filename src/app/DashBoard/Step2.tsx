@@ -299,8 +299,12 @@ const Step2 = () => {
         );
         setRiskAlerts(riskRes.data);
       } catch (err: any) {
-        console.error("Risk Alerts API error:", err.message, err.response?.data);
-        setApiErrors(prev => ({
+        console.error(
+          "Risk Alerts API error:",
+          err.message,
+          err.response?.data
+        );
+        setApiErrors((prev) => ({
           ...prev,
           risks: `Failed to fetch risk alerts: ${err.message}`,
         }));
@@ -331,7 +335,7 @@ const Step2 = () => {
             totalItems: 0,
             itemsPerPage: 5,
           });
-          setApiErrors(prev => ({
+          setApiErrors((prev) => ({
             ...prev,
             milestones: "Invalid milestones data format",
           }));
@@ -346,7 +350,7 @@ const Step2 = () => {
           totalItems: 0,
           itemsPerPage: 5,
         });
-        setApiErrors(prev => ({
+        setApiErrors((prev) => ({
           ...prev,
           milestones: `Failed to fetch milestones: ${err.message}`,
         }));
@@ -360,8 +364,12 @@ const Step2 = () => {
         );
         setTaskCompletion(completionRes.data);
       } catch (err: any) {
-        console.error("Task Completion API error:", err.message, err.response?.data);
-        setApiErrors(prev => ({
+        console.error(
+          "Task Completion API error:",
+          err.message,
+          err.response?.data
+        );
+        setApiErrors((prev) => ({
           ...prev,
           taskCompletion: `Failed to fetch task completion: ${err.message}`,
         }));
@@ -375,8 +383,12 @@ const Step2 = () => {
         );
         setTeamWorkload(workloadRes.data);
       } catch (err: any) {
-        console.error("Team Workload API error:", err.message, err.response?.data);
-        setApiErrors(prev => ({
+        console.error(
+          "Team Workload API error:",
+          err.message,
+          err.response?.data
+        );
+        setApiErrors((prev) => ({
           ...prev,
           workload: `Failed to fetch workload: ${err.message}`,
         }));
@@ -397,8 +409,12 @@ const Step2 = () => {
         });
         console.log("Project Health Response:", healthRes.data); // Debug pagination
       } catch (err: any) {
-        console.error("Project Health API error:", err.message, err.response?.data);
-        setApiErrors(prev => ({
+        console.error(
+          "Project Health API error:",
+          err.message,
+          err.response?.data
+        );
+        setApiErrors((prev) => ({
           ...prev,
           projectHealth: `Failed to fetch project health: ${err.message}`,
         }));
@@ -413,40 +429,70 @@ const Step2 = () => {
   // Handle project pagination
   const handlePreviousProjectPage = () => {
     if (projectPagination.currentPage > 1) {
-      setProjectPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }));
+      setProjectPagination((prev) => ({
+        ...prev,
+        currentPage: prev.currentPage - 1,
+      }));
     }
   };
 
   const handleNextProjectPage = () => {
     if (projectPagination.currentPage < projectPagination.totalPages) {
-      setProjectPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }));
+      setProjectPagination((prev) => ({
+        ...prev,
+        currentPage: prev.currentPage + 1,
+      }));
     }
   };
 
   // Handle milestone pagination
   const handlePreviousMilestonePage = () => {
     if (milestonePagination.currentPage > 1) {
-      setMilestonePagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }));
+      setMilestonePagination((prev) => ({
+        ...prev,
+        currentPage: prev.currentPage - 1,
+      }));
     }
   };
 
   const handleNextMilestonePage = () => {
     if (milestonePagination.currentPage < milestonePagination.totalPages) {
-      setMilestonePagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }));
+      setMilestonePagination((prev) => ({
+        ...prev,
+        currentPage: prev.currentPage + 1,
+      }));
     }
   };
 
   // Map priority to colors for Risk Alerts
-  const getPriorityStyles = (priority: string): { bg: string; border: string; text: string } => {
+  const getPriorityStyles = (
+    priority: string
+  ): { bg: string; border: string; text: string } => {
     switch (priority) {
       case "High":
-        return { bg: "bg-red-100", border: "border-red-400", text: "text-red-600" };
+        return {
+          bg: "bg-red-100",
+          border: "border-red-400",
+          text: "text-red-600",
+        };
       case "Medium":
-        return { bg: "bg-yellow-100", border: "border-yellow-400", text: "text-yellow-600" };
+        return {
+          bg: "bg-yellow-100",
+          border: "border-yellow-400",
+          text: "text-yellow-600",
+        };
       case "Low":
-        return { bg: "bg-blue-100", border: "border-blue-400", text: "text-blue-600" };
+        return {
+          bg: "bg-blue-100",
+          border: "border-blue-400",
+          text: "text-blue-600",
+        };
       default:
-        return { bg: "bg-gray-100", border: "border-gray-400", text: "text-gray-600" };
+        return {
+          bg: "bg-gray-100",
+          border: "border-gray-400",
+          text: "text-gray-600",
+        };
     }
   };
 
@@ -505,7 +551,9 @@ const Step2 = () => {
             ) : apiErrors.risks ? (
               <div className="text-center text-red-500">{apiErrors.risks}</div>
             ) : riskAlerts.length === 0 ? (
-              <div className="text-center text-gray-500">No risk alerts available</div>
+              <div className="text-center text-gray-500">
+                No risk alerts available
+              </div>
             ) : (
               riskAlerts.map((alert, idx) => {
                 const styles = getPriorityStyles(alert.priority);
@@ -517,7 +565,9 @@ const Step2 = () => {
                     <div className={`text-sm font-semibold ${styles.text}`}>
                       {alert.message}
                     </div>
-                    <div className="text-xs text-gray-600">{alert.projectName}</div>
+                    <div className="text-xs text-gray-600">
+                      {alert.projectName}
+                    </div>
                     <div className="text-right text-xs text-gray-500">
                       {alert.timestamp
                         ? new Date(alert.timestamp).toLocaleTimeString()
@@ -538,15 +588,28 @@ const Step2 = () => {
               <button
                 onClick={handlePreviousMilestonePage}
                 disabled={milestonePagination.currentPage === 1}
-                className={`cursor-pointer ${milestonePagination.currentPage === 1 ? "text-gray-300" : ""}`}
+                className={`cursor-pointer ${
+                  milestonePagination.currentPage === 1 ? "text-gray-300" : ""
+                }`}
               >
                 Previous <FaChevronRight className="inline rotate-180" />
               </button>
-              <span>| Page {milestonePagination.currentPage} of {milestonePagination.totalPages} |</span>
+              <span>
+                | Page {milestonePagination.currentPage} of{" "}
+                {milestonePagination.totalPages} |
+              </span>
               <button
                 onClick={handleNextMilestonePage}
-                disabled={milestonePagination.currentPage === milestonePagination.totalPages}
-                className={`cursor-pointer ${milestonePagination.currentPage === milestonePagination.totalPages ? "text-gray-300" : ""}`}
+                disabled={
+                  milestonePagination.currentPage ===
+                  milestonePagination.totalPages
+                }
+                className={`cursor-pointer ${
+                  milestonePagination.currentPage ===
+                  milestonePagination.totalPages
+                    ? "text-gray-300"
+                    : ""
+                }`}
               >
                 Next <FaChevronRight className="inline" />
               </button>
@@ -556,9 +619,13 @@ const Step2 = () => {
             {loading ? (
               <div>Loading...</div>
             ) : apiErrors.milestones ? (
-              <div className="text-center text-red-500">{apiErrors.milestones}</div>
+              <div className="text-center text-red-500">
+                {apiErrors.milestones}
+              </div>
             ) : milestones.length === 0 ? (
-              <div className="text-center text-gray-500">No upcoming milestones</div>
+              <div className="text-center text-gray-500">
+                No upcoming milestones
+              </div>
             ) : (
               milestones.map((milestone, idx) => (
                 <div key={idx} className="flex gap-3 items-start">
@@ -586,7 +653,9 @@ const Step2 = () => {
             {loading ? (
               <div>Loading...</div>
             ) : apiErrors.taskCompletion ? (
-              <div className="text-center text-red-500">{apiErrors.taskCompletion}</div>
+              <div className="text-center text-red-500">
+                {apiErrors.taskCompletion}
+              </div>
             ) : (
               <>
                 <div className="h-40 w-40 mx-auto">
@@ -628,19 +697,24 @@ const Step2 = () => {
               {loading ? (
                 <div>Loading...</div>
               ) : apiErrors.workload ? (
-                <div className="text-center text-red-500">{apiErrors.workload}</div>
+                <div className="text-center text-red-500">
+                  {apiErrors.workload}
+                </div>
               ) : (
-                ["PM", "QA", "Backend", "Frontend", "Design"].map((role, idx) => (
-                  <div key={idx}>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span>{role}</span>
+                ["PM", "QA", "Backend", "Frontend", "Design"].map(
+                  (role, idx) => (
+                    <div key={idx}>
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>{role}</span>
+                      </div>
+                      <div
+                        className="bg-blue-500 h-2 rounded"
+                        //@ts-ignore
+                        style={{ width: `${teamWorkload[role] || 0}%` }}
+                      />
                     </div>
-                    <div
-                      className="bg-blue-500 h-2 rounded"
-                      style={{ width: `${teamWorkload[role] || 0}%` }}
-                    />
-                  </div>
-                ))
+                  )
+                )
               )}
             </div>
           </div>
@@ -653,15 +727,28 @@ const Step2 = () => {
                 <button
                   onClick={handlePreviousProjectPage}
                   disabled={projectPagination.currentPage === 1}
-                  className={`cursor-pointer ${projectPagination.currentPage === 1 ? "text-gray-300" : ""}`}
+                  className={`cursor-pointer ${
+                    projectPagination.currentPage === 1 ? "text-gray-300" : ""
+                  }`}
                 >
                   Previous <FaChevronRight className="inline rotate-180" />
                 </button>
-                <span>| Page {projectPagination.currentPage} of {projectPagination.totalPages} |</span>
+                <span>
+                  | Page {projectPagination.currentPage} of{" "}
+                  {projectPagination.totalPages} |
+                </span>
                 <button
                   onClick={handleNextProjectPage}
-                  disabled={projectPagination.currentPage === projectPagination.totalPages}
-                  className={`cursor-pointer ${projectPagination.currentPage === projectPagination.totalPages ? "text-gray-300" : ""}`}
+                  disabled={
+                    projectPagination.currentPage ===
+                    projectPagination.totalPages
+                  }
+                  className={`cursor-pointer ${
+                    projectPagination.currentPage ===
+                    projectPagination.totalPages
+                      ? "text-gray-300"
+                      : ""
+                  }`}
                 >
                   Next <FaChevronRight className="inline" />
                 </button>
@@ -671,9 +758,13 @@ const Step2 = () => {
               {loading ? (
                 <div>Loading...</div>
               ) : apiErrors.projectHealth ? (
-                <div className="text-center text-red-500">{apiErrors.projectHealth}</div>
+                <div className="text-center text-red-500">
+                  {apiErrors.projectHealth}
+                </div>
               ) : projectHealth.length === 0 ? (
-                <div className="text-center text-gray-500">No project health data</div>
+                <div className="text-center text-gray-500">
+                  No project health data
+                </div>
               ) : (
                 projectHealth.map((project, idx) => (
                   <div key={idx}>
@@ -683,7 +774,9 @@ const Step2 = () => {
                     </div>
                     <div className="bg-gray-300 h-2 rounded">
                       <div
-                        className={`h-2 rounded ${getHealthColor(project.health)}`}
+                        className={`h-2 rounded ${getHealthColor(
+                          project.health
+                        )}`}
                         style={{ width: `${project.health}%` }}
                       />
                     </div>
