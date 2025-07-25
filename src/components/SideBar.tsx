@@ -54,11 +54,9 @@
 // };
 
 // export default SideBar;
-
-
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Squares2X2Icon,
@@ -68,6 +66,8 @@ import {
   CpuChipIcon,
   Cog6ToothIcon,
   UserCircleIcon,
+  Bars3Icon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 
 type NavItem = {
@@ -88,26 +88,56 @@ const navItems: NavItem[] = [
 ];
 
 const SideBar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <aside className="bg-[#0E1422] fixed top-0 left-0 h-screen w-52 p-4 hidden sm:block">
-      <div className="text-white text-xl font-bold mb-8">LOGO</div>
-      <nav className="space-y-4">
-        {navItems.map((item, index) => (
-          <Link
-            key={index}
-            href={item.disabled ? '#' : item.href}
-            className={`flex items-center px-4 py-2 rounded-md text-sm transition ${
-              item.disabled
-                ? 'bg-[#2b2f3a] text-gray-400 cursor-not-allowed'
-                : 'hover:bg-[#1a2233] text-white'
-            }`}
-          >
-            {item.icon}
-            <span className="ml-3">{item.name}</span>
-          </Link>
-        ))}
-      </nav>
-    </aside>
+    <>
+      {/* Mobile Header */}
+      <div className="sm:hidden fixed top-0 left-0 right-0 bg-[#0E1422] p-4 z-50 flex justify-between items-center">
+        <div className="text-white text-xl font-bold">LOGO</div>
+        <button onClick={toggleSidebar} className="text-white">
+          {isOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
+        </button>
+      </div>
+
+      {/* Sidebar */}
+      <aside
+        className={`bg-[#0E1422] fixed top-0 left-0 h-screen w-64 p-4 transform transition-transform duration-300 ease-in-out z-40 ${
+          isOpen ? 'translate-x-0' : '-translate-x-full'
+        } sm:translate-x-0 sm:w-52 sm:block`}
+      >
+        <div className="text-white text-xl font-bold mb-8 mt-4 sm:mt-0">LOGO</div>
+        <nav className="space-y-4">
+          {navItems.map((item, index) => (
+            <Link
+              key={index}
+              href={item.disabled ? '#' : item.href}
+              onClick={() => setIsOpen(false)} // Close sidebar on link click
+              className={`flex items-center px-4 py-2 rounded-md text-sm transition ${
+                item.disabled
+                  ? 'bg-[#2b2f3a] text-gray-400 cursor-not-allowed'
+                  : 'hover:bg-[#1a2233] text-white'
+              }`}
+            >
+              {item.icon}
+              <span className="ml-3">{item.name}</span>
+            </Link>
+          ))}
+        </nav>
+      </aside>
+
+      {/* Overlay for mobile when sidebar is open */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-30 sm:hidden"
+          onClick={toggleSidebar}
+        ></div>
+      )}
+    </>
   );
 };
 
