@@ -4,6 +4,9 @@ import Image from 'next/image';
 import { FaBell, FaFilter } from 'react-icons/fa';
 import { AiOutlinePlus } from 'react-icons/ai';
 import { FiSearch } from 'react-icons/fi';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 type Task = {
   title: string;
@@ -17,6 +20,11 @@ type Task = {
 type Column = {
   title: string;
   tasks: Task[];
+};
+
+type Project = {
+  projectId: string;
+  name: string;
 };
 
 const getLevelColor = (level: string) => {
@@ -68,107 +76,86 @@ const getTagColor = (tag: string) => {
       return 'bg-violet-100 text-violet-700';
     case 'ux/ui':
       return 'bg-lime-100 text-lime-700';
+    case 'low':
+      return 'bg-green-100 text-green-700';
+    case 'medium':
+      return 'bg-orange-100 text-orange-700';
+    case 'high':
+      return 'bg-red-100 text-red-700';
     default:
       return 'bg-gray-200 text-gray-700';
   }
 };
 
-const board: Column[] = [
-  {
-    title: 'To Do',
-    tasks: [
-      {
-        title: 'Design API Integration Architecture',
-        desc: 'Create a detailed architecture diagram for the third-party API integration.',
-        assignee: 'James Wilson',
-        date: 'Jun 24',
-        level: 'Medium',
-        tags: ['API', 'Design'],
-      },
-      {
-        title: 'Fix Payment Gateway Issues',
-        desc: 'Investigate and resolve the payment processing errors reported by customers.',
-        assignee: 'Emily Davis',
-        date: 'Jun 22',
-        level: 'High',
-        tags: ['Bug', 'Payment'],
-      },
-      {
-        title: 'Update User Documentation',
-        desc: 'Review and update the user guide with the latest features and improvements.',
-        assignee: 'Sarah Johnson',
-        date: 'Jun 25',
-        level: 'Low',
-        tags: ['Docs'],
-      },
-    ],
-  },
-  {
-    title: 'In Progress',
-    tasks: [
-      {
-        title: 'Implement Shopping Cart Functionality',
-        desc: 'Develop the shopping cart module with item management and checkout flow.',
-        assignee: 'James Wilson',
-        date: 'Jun 25',
-        level: 'High',
-        tags: ['Feature', 'E-commerce'],
-      },
-      {
-        title: 'Optimize Database Queries',
-        desc: 'Improve performance by optimizing slow database queries.',
-        assignee: 'Michael Anderson',
-        date: 'Jun 24',
-        level: 'Medium',
-        tags: ['Performance', 'Database'],
-      },
-    ],
-  },
-  {
-    title: 'Review',
-    tasks: [
-      {
-        title: 'Implement Product Recommendation Engine',
-        desc: 'Create an algorithm to suggest relevant products based on user history.',
-        assignee: 'James Wilson',
-        date: 'Jun 22',
-        level: 'Medium',
-        tags: ['AI', 'E-commerce'],
-      },
-      {
-        title: 'Mobile App Navigation Redesign',
-        desc: 'Improve the mobile app navigation structure based on feedback.',
-        assignee: 'Rebecca Lewis',
-        date: 'Jun 21',
-        level: 'High',
-        tags: ['Design', 'Mobile'],
-      },
-    ],
-  },
-  {
-    title: 'Done',
-    tasks: [
-      {
-        title: 'Set Up CI/CD Pipeline',
-        desc: 'Configure automated testing and deployment pipeline.',
-        assignee: 'Michael Anderson',
-        date: 'Jun 18',
-        level: 'Completed',
-        tags: ['DevOps'],
-      },
-      {
-        title: 'User Profile Management',
-        desc: 'Implement user profile editing, preferences, and account features.',
-        assignee: 'Emily Davis',
-        date: 'Jun 17',
-        level: 'Completed',
-        tags: ['Feature', 'User'],
-      },
-    ],
-  },
-];
-
 export default function KanbanPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [board, setBoard] = useState<Column[]>([
+    { title: 'To Do', tasks: [] },
+    { title: 'In Progress', tasks: [] },
+    { title: 'Review', tasks: [] },
+    { title: 'Done', tasks: [] },
+  ]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Fetch projects
+    const fetchProjects = async () => {
+      try {
+        const response = await axios.get<Project[]>('http://localhost:3007/api/projects');
+        setProjects(response.data);
+        if (response.data.length > 0) {
+          setSelectedProjectId(response.data[0].projectId);
+        }
+      } catch (err: any) {
+        console.error('Projects API error:', err.message, err.response?.data);
+        setError('Failed to fetch projects');
+        toast.error('Failed to fetch projects');
+      }
+    };
+    fetchProjects();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedProjectId) return;
+
+    // Fetch tasks for selected project
+    const fetchTasks = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axios.get<Task[]>(
+          `http://localhost:3007/api/tasks?projectId=${selectedProjectId}`
+        );
+        console.log('Tasks Response:', response.data); // Debug log
+        const tasks = response.data;
+
+        // Group tasks by status
+        const newBoard: Column[] = [
+          { title: 'To Do', tasks: tasks.filter(task => task.level === 'To Do' || task.level === 'Not Started') },
+          { title: 'In Progress', tasks: tasks.filter(task => task.level === 'In Progress' || task.level === 'Active') },
+          { title: 'Review', tasks: tasks.filter(task => task.level === 'Review') },
+          { title: 'Done', tasks: tasks.filter(task => task.level === 'Completed' || task.level === 'Done') },
+        ];
+        setBoard(newBoard);
+      } catch (err: any) {
+        console.error('Tasks API error:', err.message, err.response?.data);
+        setError('Failed to fetch tasks');
+        toast.error('Failed to fetch tasks');
+        setBoard([
+          { title: 'To Do', tasks: [] },
+          { title: 'In Progress', tasks: [] },
+          { title: 'Review', tasks: [] },
+          { title: 'Done', tasks: [] },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTasks();
+  }, [selectedProjectId]);
+
   return (
     <div className="min-h-screen bg-gray-200 text-black">
       {/* Header */}
@@ -183,7 +170,24 @@ export default function KanbanPage() {
 
       {/* Filters & Actions */}
       <div className="bg-white flex flex-col lg:flex-row justify-between px-6 py-4 gap-4 border-b">
-        <div />
+        <div className="flex items-center gap-3">
+          <select
+            value={selectedProjectId || ''}
+            onChange={(e) => setSelectedProjectId(e.target.value)}
+            className="px-3 py-1.5 border rounded-md text-sm bg-white"
+            disabled={loading || projects.length === 0}
+          >
+            {projects.length === 0 ? (
+              <option value="">No projects available</option>
+            ) : (
+              projects.map((project) => (
+                <option key={project.projectId} value={project.projectId}>
+                  {project.name}
+                </option>
+              ))
+            )}
+          </select>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <button className="flex items-center px-3 py-1.5 border rounded-md bg-white text-sm hover:bg-gray-100">
             <FaFilter className="mr-2" />
@@ -206,46 +210,56 @@ export default function KanbanPage() {
 
       {/* Board Columns */}
       <div className="px-4 py-6 overflow-x-auto">
-        <div className="flex gap-4 w-[200%] sm:w-[140%] lg:w-full">
-          {board.map((col, colIdx) => (
-            <div key={colIdx} className="flex-1 min-w-[250px]">
-              <div className="bg-white rounded-lg shadow p-3">
-                <h2 className="text-sm font-semibold text-gray-700 mb-3">{col.title}</h2>
-                <div className="space-y-4">
-                  {col.tasks.map((task, taskIdx) => (
-                    <div
-                      key={taskIdx}
-                      className="bg-gray-50 rounded-xl border border-gray-200 shadow-sm p-4 space-y-2"
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${getLevelColor(task.level)}`}>
-                          {task.level}
-                        </span>
-                        <button className="text-gray-400 hover:text-gray-600 text-sm">⋮</button>
-                      </div>
-                      <h3 className="text-sm font-semibold text-gray-800">{task.title}</h3>
-                      <p className="text-xs text-gray-500">{task.desc}</p>
-                      <div className="flex justify-between items-center text-xs text-gray-400">
-                        <span>{task.assignee}</span>
-                        <span>{task.date}</span>
-                      </div>
-                      <div className="flex flex-wrap gap-1">
-                        {task.tags.map((tag, i) => (
-                          <span
-                            key={i}
-                            className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getTagColor(tag)}`}
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+        {loading ? (
+          <div className="text-center text-gray-600">Loading tasks...</div>
+        ) : error ? (
+          <div className="text-center text-red-500">{error}</div>
+        ) : (
+          <div className="flex gap-4 w-[200%] sm:w-[140%] lg:w-full">
+            {board.map((col, colIdx) => (
+              <div key={colIdx} className="flex-1 min-w-[250px]">
+                <div className="bg-white rounded-lg shadow p-3">
+                  <h2 className="text-sm font-semibold text-gray-700 mb-3">{col.title}</h2>
+                  <div className="space-y-4">
+                    {col.tasks.length === 0 ? (
+                      <div className="text-center text-gray-500 text-sm">No tasks</div>
+                    ) : (
+                      col.tasks.map((task, taskIdx) => (
+                        <div
+                          key={taskIdx}
+                          className="bg-gray-50 rounded-xl border border-gray-200 shadow-sm p-4 space-y-2"
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className={`text-xs px-2 py-0.5 rounded-full ${getLevelColor(task.level)}`}>
+                              {task.level}
+                            </span>
+                            <button className="text-gray-400 hover:text-gray-600 text-sm">⋮</button>
+                          </div>
+                          <h3 className="text-sm font-semibold text-gray-800">{task.title}</h3>
+                          <p className="text-xs text-gray-500">{task.desc}</p>
+                          <div className="flex justify-between items-center text-xs text-gray-400">
+                            <span>{task.assignee}</span>
+                            <span>{task.date}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1">
+                            {task.tags.map((tag, i) => (
+                              <span
+                                key={i}
+                                className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${getTagColor(tag)}`}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
