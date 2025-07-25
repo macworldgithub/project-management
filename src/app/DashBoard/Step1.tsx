@@ -70,8 +70,7 @@ const TimelineDashboard = () => {
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`
       );
-      const projects: Project[] = res.data;
-
+      const projects: Project[] = Array.isArray(res.data) ? res.data : [];
       setAllProjects(projects); // ✅ store all projects for counting
 
       const timelinesObj: { [id: string]: Timeline } = {};

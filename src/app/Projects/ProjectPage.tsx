@@ -91,7 +91,7 @@ export default function ProjectsPage() {
       const res = await axios.get<Project[]>(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`
       );
-      setProjects(res.data);
+      setProjects(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       setProjects([]);
     } finally {
@@ -699,3 +699,8 @@ export default function ProjectsPage() {
     </div>
   );
 }
+
+
+
+
+
