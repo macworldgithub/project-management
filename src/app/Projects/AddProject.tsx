@@ -242,7 +242,7 @@ export default function AddProject() {
                 <h2 className="text-lg font-semibold mb-4 text-gray-800">
                   Create New Project (With Scope File)
                 </h2>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-black">
                   Project scope as a file (PDF, DOCX, or TXT, &lt;10MB)
                 </label>
                 <input
@@ -254,17 +254,17 @@ export default function AddProject() {
                   className="w-full border px-3 py-2 rounded text-sm mb-3"
                   required
                 />
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-black">
                   Delivery Date (ISO 8601)
                 </label>
                 <input
                   type="date"
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
-                  className="w-full border px-3 py-2 rounded text-sm mb-3"
+                  className="w-full border px-3 py-2 rounded text-sm mb-3 :placeholder-text-gray-900"
                   required
                 />
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-black">
                   Team Members
                 </label>
                 {scopeTeam.map((member, idx) => (
@@ -276,7 +276,7 @@ export default function AddProject() {
                       onChange={(e) =>
                         handleScopeTeamChange(idx, "name", e.target.value)
                       }
-                      className="border  py-1 rounded text-xs"
+                      className="border  py-1 rounded text-xs text-black placeholder:text-gray-400"
                     />
                     <input
                       type="text"
@@ -285,7 +285,7 @@ export default function AddProject() {
                       onChange={(e) =>
                         handleScopeTeamChange(idx, "role", e.target.value)
                       }
-                      className="border  py-1 rounded text-xs"
+                      className="border  py-1 rounded text-xs placeholder:text-gray-400 "
                     />
                     <input
                       type="number"
@@ -298,7 +298,7 @@ export default function AddProject() {
                           e.target.value
                         )
                       }
-                      className="border px-2 py-1 rounded text-xs w-20"
+                      className="border px-2 py-1 rounded text-xs w-20 text-black placeholder:text-gray-400"
                     />
                     {scopeTeam.length > 1 && (
                       <button
@@ -318,16 +318,18 @@ export default function AddProject() {
                 >
                   + Add Team Member
                 </button>
-                <label className="block text-sm font-medium mb-1">
+                <label className="block text-sm font-medium mb-1 text-black">
                   Complexity
                 </label>
                 <select
                   value={complexity}
                   onChange={(e) => setComplexity(e.target.value)}
-                  className="w-full border px-3 py-2 rounded text-sm mb-4"
+                  className="w-full border px-3 py-2 rounded text-sm mb-4 text-black placeholder:text-gray-400"
                   required
                 >
-                  <option value="Low">Low</option>
+                  <option value="Low" className="">
+                    Low
+                  </option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
                 </select>
@@ -362,7 +364,7 @@ export default function AddProject() {
                   type="date"
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
-                  className="w-full border px-3 py-2 rounded text-sm mb-3"
+                  className="w-full border px-3 py-2 rounded text-sm mb-3 text-black placeholder:text-gray-400"
                 />
 
                 <select
