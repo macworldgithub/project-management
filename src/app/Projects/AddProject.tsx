@@ -21,6 +21,7 @@ export default function AddProject() {
   const [scopeTeam, setScopeTeam] = useState([
     { name: "", role: "", availability: "" },
   ]);
+  const [scopeName, setScopeName] = useState("");
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -115,6 +116,10 @@ export default function AddProject() {
 
   const handleScopeFileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!scopeName) {
+      toast.error("Project name is required.");
+      return;
+    }
     if (!scopeFile) {
       toast.error("Please select a scope file.");
       return;
@@ -128,6 +133,7 @@ export default function AddProject() {
     try {
       const formData = new FormData();
       formData.append("scope", scopeFile);
+      formData.append("name", scopeName);
       formData.append(
         "deliveryDate",
         deliveryDate ? new Date(deliveryDate).toISOString() : ""
@@ -155,6 +161,7 @@ export default function AddProject() {
       setSuccessMsg("Project with scope file created successfully!");
       setShowModal(false);
       setScopeFile(null);
+      setScopeName("");
       setDeliveryDate("");
       setComplexity("Medium");
       setScopeTeam([{ name: "", role: "", availability: "" }]);
@@ -243,6 +250,17 @@ export default function AddProject() {
                   Create New Project (With Scope File)
                 </h2>
                 <label className="block text-sm font-medium mb-1">
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Project Name"
+                  value={scopeName}
+                  onChange={(e) => setScopeName(e.target.value)}
+                  className="w-full border px-3 py-2 rounded text-sm mb-3"
+                  required
+                />
+                <label className="block text-sm font-medium mb-1">
                   Project scope as a file (PDF, DOCX, or TXT, &lt;10MB)
                 </label>
                 <input
@@ -278,15 +296,19 @@ export default function AddProject() {
                       }
                       className="border  py-1 rounded text-xs"
                     />
-                    <input
-                      type="text"
-                      placeholder="Role"
+                    <select
                       value={member.role}
-                      onChange={(e) =>
-                        handleScopeTeamChange(idx, "role", e.target.value)
-                      }
-                      className="border  py-1 rounded text-xs"
-                    />
+                      onChange={(e) => handleScopeTeamChange(idx, "role", e.target.value)}
+                      className="border py-1 rounded text-xs"
+                      required
+                    >
+                      <option value="">Select Role</option>
+                      <option value="PM">PM</option>
+                      <option value="QA">QA</option>
+                      <option value="Backend">Backend</option>
+                      <option value="Frontend">Frontend</option>
+                      <option value="Design">Design</option>
+                    </select>
                     <input
                       type="number"
                       placeholder="Availability"
@@ -391,15 +413,19 @@ export default function AddProject() {
                         }
                         className="border px-2 py-1 rounded text-xs"
                       />
-                      <input
-                        type="text"
-                        placeholder="Role"
+                      <select
                         value={member.role}
-                        onChange={(e) =>
-                          handleTeamChange(idx, "role", e.target.value)
-                        }
+                        onChange={(e) => handleTeamChange(idx, "role", e.target.value)}
                         className="border px-2 py-1 rounded text-xs"
-                      />
+                        required
+                      >
+                        <option value="">Select Role</option>
+                        <option value="PM">PM</option>
+                        <option value="QA">QA</option>
+                        <option value="Backend">Backend</option>
+                        <option value="Frontend">Frontend</option>
+                        <option value="Design">Design</option>
+                      </select>
                       <input
                         type="number"
                         placeholder="Availability"
