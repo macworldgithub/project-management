@@ -81,10 +81,10 @@ const navItems: NavItem[] = [
   { name: 'Dashboard', href: '/DashBoard', icon: <Squares2X2Icon className="h-5 w-5" /> },
   { name: 'Projects', href: '/Projects', icon: <FolderIcon className="h-5 w-5" /> },
   { name: 'Kanban Board', href: '/KanbanBoard', icon: <RectangleStackIcon className="h-5 w-5" /> },
-  { name: 'AI Planner', href: '/AIPlanner', icon: <CpuChipIcon className="h-5 w-5" /> },
-  { name: 'Reports', href: '/Report', icon: <ChartBarIcon className="h-5 w-5" /> },
-  { name: 'Settings', href: '/ProfileSetting', icon: <Cog6ToothIcon className="h-5 w-5" /> },
-  { name: 'Account', href: '/AccountSetting', icon: <UserCircleIcon className="h-5 w-5" /> },
+  // { name: 'AI Planner', href: '/AIPlanner', icon: <CpuChipIcon className="h-5 w-5" /> },
+  // { name: 'Reports', href: '/Report', icon: <ChartBarIcon className="h-5 w-5" /> },
+  // { name: 'Settings', href: '/ProfileSetting', icon: <Cog6ToothIcon className="h-5 w-5" /> },
+  // { name: 'Account', href: '/AccountSetting', icon: <UserCircleIcon className="h-5 w-5" /> },
 ];
 
 const SideBar = () => {
