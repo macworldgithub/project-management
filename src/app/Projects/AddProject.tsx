@@ -250,6 +250,17 @@ export default function AddProject() {
                   Create New Project (With Scope File)
                 </h2>
                 <label className="block text-sm font-medium mb-1 text-black">
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  placeholder="Project Name"
+                  value={scopeName}
+                  onChange={(e) => setScopeName(e.target.value)}
+                  className="w-full border px-3 py-2 rounded text-sm mb-3 text-black"
+                  required
+                />
+                <label className="block text-sm font-medium mb-1 text-black">
                   Project scope as a file (PDF, DOCX, or TXT, &lt;10MB)
                 </label>
                 <input
@@ -258,7 +269,7 @@ export default function AddProject() {
                   onChange={(e) =>
                     setScopeFile(e.target.files ? e.target.files[0] : null)
                   }
-                  className="w-full border px-3 py-2 rounded text-sm mb-3"
+                  className="w-full border px-3 py-2 rounded text-sm mb-3 placeholder:text-gray-500"
                   required
                 />
                 <label className="block text-sm font-medium mb-1 text-black">
@@ -268,14 +279,17 @@ export default function AddProject() {
                   type="date"
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
-                  className="w-full border px-3 py-2 rounded text-sm mb-3 :placeholder-text-gray-900"
+                  className="w-full border px-3 py-2 rounded text-sm mb-3 text-black"
                   required
                 />
                 <label className="block text-sm font-medium mb-1 text-black">
                   Team Members
                 </label>
                 {scopeTeam.map((member, idx) => (
-                  <div key={idx} className="mb-2 flex gap-2 items-center">
+                  <div
+                    key={idx}
+                    className="mb-2 flex gap-2 items-center text-black"
+                  >
                     <input
                       type="text"
                       placeholder="Name"
@@ -283,15 +297,23 @@ export default function AddProject() {
                       onChange={(e) =>
                         handleScopeTeamChange(idx, "name", e.target.value)
                       }
-                      className="border  py-1 rounded text-xs text-black placeholder:text-gray-400"
+                      className="border text-black py-1 rounded text-xs placeholder:text-gray-500"
                     />
                     <select
                       value={member.role}
                       onChange={(e) =>
                         handleScopeTeamChange(idx, "role", e.target.value)
                       }
-                      className="border  py-1 rounded text-xs placeholder:text-gray-400 "
-                    />
+                      className="border py-1 rounded text-xs"
+                      required
+                    >
+                      <option value="">Select Role</option>
+                      <option value="PM">PM</option>
+                      <option value="QA">QA</option>
+                      <option value="Backend">Backend</option>
+                      <option value="Frontend">Frontend</option>
+                      <option value="Design">Design</option>
+                    </select>
                     <input
                       type="number"
                       placeholder="Availability"
@@ -303,7 +325,7 @@ export default function AddProject() {
                           e.target.value
                         )
                       }
-                      className="border px-2 py-1 rounded text-xs w-20 text-black placeholder:text-gray-400"
+                      className="border px-2 py-1 rounded text-xs w-20"
                     />
                     {scopeTeam.length > 1 && (
                       <button
@@ -329,12 +351,10 @@ export default function AddProject() {
                 <select
                   value={complexity}
                   onChange={(e) => setComplexity(e.target.value)}
-                  className="w-full border px-3 py-2 rounded text-sm mb-4 text-black placeholder:text-gray-400"
+                  className="w-full border px-3 py-2 rounded text-sm mb-4 text-black"
                   required
                 >
-                  <option value="Low" className="">
-                    Low
-                  </option>
+                  <option value="Low">Low</option>
                   <option value="Medium">Medium</option>
                   <option value="High">High</option>
                 </select>
@@ -369,7 +389,7 @@ export default function AddProject() {
                   type="date"
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
-                  className="w-full border px-3 py-2 rounded text-sm mb-3 text-black placeholder:text-gray-400"
+                  className="w-full border px-3 py-2 rounded text-sm mb-3"
                 />
 
                 <select
@@ -400,8 +420,10 @@ export default function AddProject() {
                       />
                       <select
                         value={member.role}
-                        onChange={(e) => handleTeamChange(idx, "role", e.target.value)}
-                        className="border px-2 py-1 rounded text-xs"
+                        onChange={(e) =>
+                          handleTeamChange(idx, "role", e.target.value)
+                        }
+                        className="border px-2 py-1 rounded placeholder:text-gray-500 text-xs"
                         required
                       >
                         <option value="">Select Role</option>
@@ -440,10 +462,6 @@ export default function AddProject() {
                   </button>
                 </div>
 
-
-
-                
-
                 <button
                   onClick={handleSubmit}
                   disabled={loading}
@@ -466,6 +484,3 @@ export default function AddProject() {
     </>
   );
 }
-
-
-
