@@ -101,6 +101,29 @@ const TimelineDashboard = () => {
     fetchData();
   }, []);
 
+  // Calculate on-time vs delayed projects
+  const { onTimeCount, delayedCount } = React.useMemo(() => {
+    const today = new Date();
+    let onTimeCount = 0;
+    let delayedCount = 0;
+
+    allProjects.forEach((project) => {
+      const isCompleted = project.status === "Completed";
+      const isPastDue = new Date(project.deliveryDate) < today;
+
+      if (isCompleted && !isPastDue) {
+        // Completed before or on delivery date
+        onTimeCount++;
+      } else if (isPastDue && !isCompleted) {
+        // Past due date and not completed
+        delayedCount++;
+      }
+      // Active projects that aren't past due aren't counted in either category
+    });
+
+    return { onTimeCount, delayedCount };
+  }, [allProjects]);
+
   // Prepare chart data for selected project: show % completed per week
   const chartData = React.useMemo(() => {
     if (!selectedProjectId || !timelines[selectedProjectId]) return [];
@@ -129,9 +152,7 @@ const TimelineDashboard = () => {
     <div className="p-4 sm:p-6 md:p-8 bg-gray-200">
       {/* Header */}
       <div className="flex justify-between items-center mb-6 text-black">
-        <h1 className="text-lg sm:text-xl font-semibold">
-          Dashboard <span className="text-gray-500 font-normal">June 2025</span>
-        </h1>
+        <h1 className="text-lg sm:text-xl font-semibold">Dashboard</h1>
         <div className="flex items-center space-x-3">
           <div className="text-sm text-gray-600 text-right">
             <div className="font-semibold">Michael Anderson</div>
@@ -158,8 +179,11 @@ const TimelineDashboard = () => {
             <span>On - Time %</span>
             {/* <FaClock className="text-green-400" size={24} /> */}
           </div>
-          <div className="text-2xl font-bold mt-2">86%</div>
-          <div className="text-green-500 text-xs">↑ +3% from last week</div>
+          {/* <div className="text-2xl font-bold mt-2">86%</div> */}
+          <div className="text-2xl font-bold mt-2 text-green-600">
+            {onTimeCount}
+          </div>
+          {/* <div className="text-green-500 text-xs">↑ +3% from last week</div> */}
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow text-base">
@@ -168,11 +192,24 @@ const TimelineDashboard = () => {
             {/* <FaTasks className="text-blue-400" size={24} /> */}
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow text-base">
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <span>Active Projects</span>
-            </div>
-            <div className="text-2xl font-bold mt-2">{activeProjectCount}</div>
+          {/* <div className="bg-white p-4 rounded-lg shadow text-base"> */}
+          {/* <div className="flex items-center justify-between text-sm text-gray-500"> */}
+          {/* <span>Active Projects</span> */}
+          {/* </div> */}
+          <div className="text-2xl font-bold mt-2">{activeProjectCount}</div>
+          {/* </div> */}
+        </div>
+
+        {/* Delayed Projects Card */}
+        <div className="bg-white p-4 rounded-lg shadow">
+          <div className="flex items-center justify-between text-sm text-gray-500">
+            <span>Delayed Projects</span>
+          </div>
+          <div className="text-2xl font-bold mt-2 text-red-600">
+            {delayedCount}
+          </div>
+          <div className="text-xs text-gray-400">
+            Past deadline & incomplete
           </div>
         </div>
 

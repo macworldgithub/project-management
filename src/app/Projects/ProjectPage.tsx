@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -6,18 +5,38 @@ import axios from "axios";
 import { FaBell, FaUserAlt } from "react-icons/fa";
 import { FiGrid, FiList } from "react-icons/fi";
 import AddProject from "./AddProject";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
 import ScopeUploader from "./ScopeUploader";
 
-// Define types for project and team member
+// Define types for project, team member, task, and milestone
 interface TeamMember {
   _id?: string;
   name: string;
   role: string;
   availability: number;
+}
+
+interface Task {
+  taskId: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  assignee: string;
+  role: string;
+  status: string;
+  priority: string;
+}
+
+interface Milestone {
+  _id: string;
+  name: string;
+  date: string;
+}
+
+interface Timeline {
+  tasks: Task[];
+  milestones: Milestone[];
 }
 
 interface Project {
@@ -29,81 +48,104 @@ interface Project {
   status?: string;
   projectId?: string;
 }
-type Timeline = {
-  tasks: {
-    taskId: string;
-    name: string;
-    startDate: string;
-    endDate: string;
-    assignee: string;
-    role: string;
-    status: string;
-    priority: string;
-  }[];
-  milestones: {
-    _id: string;
-    name: string;
-    date: string;
-  }[];
-};
+
+interface Pagination {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 9,
+  });
   const [loading, setLoading] = useState<boolean>(true);
-  const [projectsWithTimeline, setProjectsWithTimeline] = useState<{ [id: string]: boolean }>({});
-  const [projectTimelines, setProjectTimelines] = useState<Record<string, Timeline>>({});
+  const [projectsWithTimeline, setProjectsWithTimeline] = useState<{
+    [id: string]: boolean;
+  }>({});
+  const [projectTimelines, setProjectTimelines] = useState<
+    Record<string, Timeline>
+  >({});
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
-
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const projectsPerPage = 9;
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
   const router = useRouter();
 
   // Modal and detail state
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [projectDetail, setProjectDetail] = useState<Project | { error: string } | null>(null);
+  const [projectDetail, setProjectDetail] = useState<
+    Project | { error: string } | null
+  >(null);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [detailLoading, setDetailLoading] = useState<boolean>(false);
   const [openTimelineId, setOpenTimelineId] = useState<string | null>(null);
 
-  // Add state for ScopeUploader modal
-  const [scopeUploadProjectId, setScopeUploadProjectId] = useState<string | null>(null);
+  // ScopeUploader modal state
+  const [scopeUploadProjectId, setScopeUploadProjectId] = useState<string | null>(
+    null
+  );
 
-  // Add state for editing a task
-  const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
-  const [taskToEdit, setTaskToEdit] = useState<any>(null);
-  const [editTaskForm, setEditTaskForm] = useState({
-    status: '',
-    assignee: '',
-    startDate: '',
-    endDate: '',
-  });
-  const [editTaskLoading, setEditTaskLoading] = useState(false);
+  // Edit Timeline modal state
+  const [editTimelineModalOpen, setEditTimelineModalOpen] =
+    useState<boolean>(false);
+  const [editTimelineProjectId, setEditTimelineProjectId] = useState<
+    string | null
+  >(null);
+  const [editTasks, setEditTasks] = useState<Task[]>([]);
+  const [editMilestones, setEditMilestones] = useState<Milestone[]>([]);
+  const [timelineLoading, setTimelineLoading] = useState<boolean>(false);
 
-  // Add state for status change modal and dropdown
-  const [statusModalOpen, setStatusModalOpen] = useState(false);
-  const [statusProjectId, setStatusProjectId] = useState<string | null>(null);
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  // Edit Team modal state
+  const [editTeamModalOpen, setEditTeamModalOpen] = useState<boolean>(false);
+  const [editTeamProjectId, setEditTeamProjectId] = useState<string | null>(null);
+  const [editTeamMembers, setEditTeamMembers] = useState<TeamMember[]>([]);
+  const [teamLoading, setTeamLoading] = useState<boolean>(false);
 
-  // Move fetchProjects outside useEffect for reuse
-  const fetchProjects = async () => {
+  // Edit Project modal state
+  const [editProjectModalOpen, setEditProjectModalOpen] =
+    useState<boolean>(false);
+  const [editProject, setEditProject] = useState<Project | null>(null);
+  const [projectLoading, setProjectLoading] = useState<boolean>(false);
+
+  // Fetch projects with search and filter
+  const fetchProjects = async (page: number = 1) => {
     setLoading(true);
     try {
-      const res = await axios.get<Project[]>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`
+      const res = await axios.get<{
+        data: Project[];
+        pagination: Pagination;
+      }>(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/search`,
+        {
+          params: {
+            search: searchQuery,
+            status: statusFilter,
+            page,
+            limit: pagination.itemsPerPage,
+          },
+        }
       );
-      setProjects(Array.isArray(res.data) ? res.data : []);
+      setProjects(Array.isArray(res.data.data) ? res.data.data : []);
+      setPagination(res.data.pagination);
     } catch (err) {
       setProjects([]);
+      toast.error("Failed to fetch projects");
     } finally {
       setLoading(false);
     }
   };
-  useEffect(() => {
-    fetchProjects();
-  }, []);
 
   useEffect(() => {
-    // After projects are loaded, check timelines
+    fetchProjects();
+  }, [searchQuery, statusFilter]);
+
+  // Check for timelines
+  useEffect(() => {
     if (projects.length === 0) return;
     const checkTimelines = async () => {
       const results: { [id: string]: boolean } = {};
@@ -113,15 +155,11 @@ export default function ProjectsPage() {
             const res = await axios.get(
               `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${proj.projectId}/timeline`
             );
-            // If timeline exists and has tasks or milestones, mark as true
-            // @ts-ignore
-            results[proj.projectId] =
+            results[proj.projectId!] =
               (res.data?.tasks && res.data.tasks.length > 0) ||
               (res.data?.milestones && res.data.milestones.length > 0);
           } catch {
-            // If error (404), mark as false
-            // @ts-ignore
-            results[proj.projectId] = false;
+            results[proj.projectId!] = false;
           }
         })
       );
@@ -130,9 +168,9 @@ export default function ProjectsPage() {
     checkTimelines();
   }, [projects]);
 
+  // Fetch project timeline
   const fetchProjectTimeline = async (projectId: string) => {
     if (openTimelineId === projectId) {
-      // If already open, close it
       setOpenTimelineId(null);
       return;
     }
@@ -146,21 +184,188 @@ export default function ProjectsPage() {
         ...prev,
         [projectId]: response.data,
       }));
-      setOpenTimelineId(projectId); // open this project's timeline
+      setOpenTimelineId(projectId);
     } catch (error) {
-      console.error(error);
       toast.error("No timeline found for this project.");
     } finally {
       setLoadingProjectId(null);
     }
   };
 
-  const totalPages = Math.ceil(projects.length / projectsPerPage);
-  const startIdx = (currentPage - 1) * projectsPerPage;
-  const endIdx = startIdx + projectsPerPage;
-  const currentProjects = projects.slice(startIdx, endIdx);
+  // Open Edit Timeline modal and fetch timeline
+  const openEditTimelineModal = async (projectId: string) => {
+    setEditTimelineProjectId(projectId);
+    setTimelineLoading(true);
+    try {
+      const response = await axios.get<Timeline>(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/timeline`
+      );
+      setEditTasks(response.data.tasks || []);
+      setEditMilestones(response.data.milestones || []);
+      setProjectTimelines((prev) => ({
+        ...prev,
+        [projectId]: response.data,
+      }));
+      setEditTimelineModalOpen(true);
+    } catch (error) {
+      toast.error("Failed to load timeline for editing");
+      setEditTasks([]);
+      setEditMilestones([]);
+      setEditTimelineModalOpen(true);
+    } finally {
+      setTimelineLoading(false);
+    }
+  };
 
-  // Card click handler: open modal and fetch detail
+  // Handle task change in Edit Timeline modal
+  const handleTaskChange = (
+    index: number,
+    field: keyof Task,
+    value: string
+  ) => {
+    const updatedTasks = [...editTasks];
+    updatedTasks[index] = { ...updatedTasks[index], [field]: value };
+    setEditTasks(updatedTasks);
+  };
+
+  // Handle milestone change in Edit Timeline modal
+  const handleMilestoneChange = (
+    index: number,
+    field: keyof Milestone,
+    value: string
+  ) => {
+    const updatedMilestones = [...editMilestones];
+    updatedMilestones[index] = { ...updatedMilestones[index], [field]: value };
+    setEditMilestones(updatedMilestones);
+  };
+
+  // Save timeline changes
+  const saveTimelineChanges = async () => {
+    if (!editTimelineProjectId) return;
+    setTimelineLoading(true);
+    try {
+      // Update the entire timeline (tasks and milestones)
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${editTimelineProjectId}/timeline`,
+        {
+          tasks: editTasks.map((task) => ({
+            taskId: task.taskId,
+            name: task.name,
+            startDate: task.startDate,
+            endDate: task.endDate,
+            assignee: task.assignee,
+            role: task.role,
+            status: task.status,
+            priority: task.priority,
+          })),
+          milestones: editMilestones.map((milestone) => ({
+            _id: milestone._id,
+            name: milestone.name,
+            date: milestone.date,
+          })),
+        }
+      );
+
+      // Refresh timeline
+      await fetchProjectTimeline(editTimelineProjectId);
+      setEditTimelineModalOpen(false);
+      toast.success("Timeline updated successfully!");
+    } catch (err) {
+      toast.error("Failed to update timeline");
+    } finally {
+      setTimelineLoading(false);
+    }
+  };
+
+  // Open Edit Team modal
+  const openEditTeamModal = (projectId: string) => {
+    const project = projects.find((p) => p.projectId === projectId);
+    setEditTeamProjectId(projectId);
+    setEditTeamMembers(project?.team || []);
+    setEditTeamModalOpen(true);
+  };
+
+  // Handle team member change
+  const handleTeamMemberChange = (
+    index: number,
+    field: keyof TeamMember,
+    value: string | number
+  ) => {
+    const updatedMembers = [...editTeamMembers];
+    updatedMembers[index] = { ...updatedMembers[index], [field]: value };
+    setEditTeamMembers(updatedMembers);
+  };
+
+  // Add team member
+  const addTeamMember = () => {
+    setEditTeamMembers([
+      ...editTeamMembers,
+      { name: "", role: "", availability: 0 },
+    ]);
+  };
+
+  // Remove team member
+  const removeTeamMember = (index: number) => {
+    setEditTeamMembers(editTeamMembers.filter((_, i) => i !== index));
+  };
+
+  // Save team changes
+  const saveTeamChanges = async () => {
+    if (!editTeamProjectId) return;
+    setTeamLoading(true);
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${editTeamProjectId}`,
+        { team: editTeamMembers }
+      );
+      await fetchProjects(pagination.currentPage);
+      setEditTeamModalOpen(false);
+      toast.success("Team updated successfully!");
+    } catch (err) {
+      toast.error("Failed to update team");
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  // Open Edit Project modal
+  const openEditProjectModal = (project: Project) => {
+    setEditProject(project);
+    setEditProjectModalOpen(true);
+  };
+
+  // Handle project field change
+  const handleProjectChange = (field: keyof Project, value: string) => {
+    setEditProject((prev) => (prev ? { ...prev, [field]: value } : null));
+  };
+
+  // Save project changes
+  const saveProjectChanges = async () => {
+    if (!editProject || !editProject.projectId) return;
+    setProjectLoading(true);
+    try {
+      await axios.put(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${editProject.projectId}`,
+        {
+          name: editProject.name,
+          deliveryDate: editProject.deliveryDate,
+          complexity: editProject.complexity,
+          status: editProject.status,
+          team: editProject.team,
+        }
+      );
+      await fetchProjects(pagination.currentPage);
+      setEditProjectModalOpen(false);
+      setModalOpen(false);
+      toast.success("Project updated successfully!");
+    } catch (err) {
+      toast.error("Failed to update project");
+    } finally {
+      setProjectLoading(false);
+    }
+  };
+
+  // Card click handler
   const handleProjectClick = async (projectId: string | undefined) => {
     if (!projectId) return;
     setSelectedProjectId(projectId);
@@ -178,77 +383,6 @@ export default function ProjectsPage() {
     }
   };
 
-  // Handler to open edit modal
-  const handleEditTaskClick = (task: any) => {
-    setTaskToEdit(task);
-    setEditTaskForm({
-      status: task.status || '',
-      assignee: task.assignee || '',
-      startDate: task.startDate ? task.startDate.slice(0, 16) : '',
-      endDate: task.endDate ? task.endDate.slice(0, 16) : '',
-    });
-    setEditTaskModalOpen(true);
-  };
-
-  // Handler for form changes
-  const handleEditTaskFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setEditTaskForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  // Handler to save task changes
-  const handleSaveTaskEdit = async () => {
-    if (!taskToEdit) return;
-    setEditTaskLoading(true);
-    try {
-      await axios.put(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/${taskToEdit.taskId}`,
-        {
-          status: editTaskForm.status,
-          assignee: editTaskForm.assignee,
-          startDate: new Date(editTaskForm.startDate).toISOString(),
-          endDate: new Date(editTaskForm.endDate).toISOString(),
-        }
-      );
-      toast.success('Task updated successfully');
-      // Refresh timeline for the project
-      if (openTimelineId) await fetchProjectTimeline(openTimelineId);
-      setEditTaskModalOpen(false);
-      setTaskToEdit(null);
-    } catch (err) {
-      toast.error('Failed to update task');
-    } finally {
-      setEditTaskLoading(false);
-    }
-  };
-
-  const handleStatusBadgeClick = (projectId: string, currentStatus: string) => {
-    setStatusProjectId(projectId);
-    setSelectedStatus(currentStatus); // default to current status
-    setStatusModalOpen(true);
-  };
-
-  const handleStatusUpdate = async () => {
-    if (!statusProjectId || !selectedStatus) return;
-    try {
-      await axios.patch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${statusProjectId}/status`,
-        { status: selectedStatus }
-      );
-      toast.success("Status updated successfully");
-      setProjects((prev) =>
-        prev.map((proj) =>
-          proj.projectId === statusProjectId ? { ...proj, status: selectedStatus } : proj
-        )
-      );
-      setStatusModalOpen(false);
-      setStatusProjectId(null);
-      setSelectedStatus("");
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Failed to update status");
-    }
-  };
-
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -256,7 +390,7 @@ export default function ProjectsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 text-black">
           <h1 className="text-2xl font-bold">Projects</h1>
           <span className="text-sm text-gray-500 mt-1 sm:mt-0">
-            June 19, 2025
+            {new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}
           </span>
         </div>
         <div className="flex items-center space-x-4">
@@ -275,19 +409,21 @@ export default function ProjectsPage() {
         <div className="flex flex-wrap gap-3 items-center text-black">
           <input
             type="text"
-            placeholder="Search projects..."
+            placeholder="Search projects by name..."
             className="px-3 py-1.5 border rounded-md text-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <select className="px-3 py-1.5 border rounded-md text-sm">
-            <option>Status</option>
-            <option>Active</option>
-            <option>Completed</option>
-          </select>
-          <select className="px-3 py-1.5 border rounded-md text-sm">
-            <option>Team</option>
-          </select>
-          <select className="px-3 py-1.5 border rounded-md text-sm">
-            <option>Date</option>
+          <select
+            className="px-3 py-1.5 border rounded-md text-sm"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="Active">Active</option>
+            <option value="Completed">Completed</option>
+            <option value="On Hold">On Hold</option>
+            <option value="Cancelled">Cancelled</option>
           </select>
         </div>
         <div className="flex space-x-1">
@@ -297,26 +433,24 @@ export default function ProjectsPage() {
           <button className="p-2 border rounded-md bg-white hover:bg-gray-200 text-black">
             <FiList />
           </button>
-          {/* Replace original button with AddProject */}
           <AddProject />
         </div>
       </div>
 
       {/* Cards */}
-      <div className="bg-gray-100 px-6 py-6 ">
+      <div className="bg-gray-100 px-6 py-6">
         {loading ? (
           <div className="text-center py-10">Loading projects...</div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {currentProjects.map((proj: any, index: number) => (
+              {projects.map((proj: any, index: number) => (
                 <div
                   key={proj._id || index}
-                  className="rounded-xl shadow-sm p-5 hover:shadow-lg transition"
+                  className="rounded-xl shadow-sm p-5 hover:shadow-lg transition bg-white"
                   title="View project details"
                   onClick={() => handleProjectClick(proj.projectId)}
                 >
-                  {/* Existing card content */}
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="text-lg font-semibold text-black">
                       {proj.name}
@@ -324,17 +458,15 @@ export default function ProjectsPage() {
                     <span
                       className={`text-xs px-2 py-1 rounded-full ${
                         proj.status === "Active"
-                          ? "bg-green-100 text-green-700 cursor-pointer hover:brightness-95"
+                          ? "bg-green-100 text-green-700"
                           : proj.status === "On Hold"
-                          ? "bg-yellow-100 text-yellow-800 cursor-pointer hover:brightness-95"
-                          : proj.status === "Delayed"
-                          ? "bg-red-100 text-red-700 cursor-pointer hover:brightness-95"
-                          : "bg-blue-100 text-blue-700 cursor-pointer hover:brightness-95"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : proj.status === "Completed"
+                          ? "bg-blue-100 text-blue-700"
+                          : proj.status === "Cancelled"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-gray-100 text-gray-700"
                       }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleStatusBadgeClick(proj.projectId, proj.status);
-                      }}
                     >
                       {proj.status}
                     </span>
@@ -353,10 +485,7 @@ export default function ProjectsPage() {
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
                     <span>
-                      Due:{" "}
-                      {proj.deliveryDate
-                        ? new Date(proj.deliveryDate).toLocaleDateString()
-                        : ""}
+                      Due: {proj.deliveryDate ? new Date(proj.deliveryDate).toLocaleDateString() : ""}
                     </span>
                     <div className="flex space-x-1">
                       {Array.from({ length: proj.team?.length || 0 }).map(
@@ -369,22 +498,52 @@ export default function ProjectsPage() {
                       )}
                     </div>
                   </div>
-                  {/* View Timeline button only if project has a timeline */}
-                  {projectsWithTimeline[proj.projectId] && (
+                  <div className="flex flex-wrap gap-2">
+                    {projectsWithTimeline[proj.projectId] && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            fetchProjectTimeline(proj.projectId);
+                          }}
+                          className="bg-white text-blue-600 border border-blue-600 px-3 py-1 rounded hover:bg-blue-50 transition text-sm"
+                        >
+                          {openTimelineId === proj.projectId
+                            ? "Close Timeline"
+                            : "View Timeline"}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditTimelineModal(proj.projectId);
+                          }}
+                          className="bg-white text-yellow-600 border border-yellow-600 px-3 py-1 rounded hover:bg-yellow-50 transition text-sm"
+                        >
+                          Edit Timeline
+                        </button>
+                      </>
+                    )}
                     <button
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevents modal from opening
-                        fetchProjectTimeline(proj.projectId);
+                        e.stopPropagation();
+                        openEditTeamModal(proj.projectId);
                       }}
-                      className="mt-2 bg-white text-blue-600 border border-blue-600 px-3 py-1 rounded hover:bg-blue-50 transition text-sm"
+                      className="bg-white text-green-600 border border-green-600 px-3 py-1 rounded hover:bg-green-50 transition text-sm"
                     >
-                      {openTimelineId === proj.projectId
-                        ? "Close Timeline"
-                        : "View Timeline"}
+                      Edit Team
                     </button>
-                  )}
-
-                  {/* Timeline block inside the map */}
+                    {!projectsWithTimeline[proj.projectId] && (
+                      <button
+                        className="bg-[#0E1422] text-white px-3 py-1 rounded hover:bg-yellow-600 transition text-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setScopeUploadProjectId(proj.projectId);
+                        }}
+                      >
+                        Upload Scope
+                      </button>
+                    )}
+                  </div>
                   {openTimelineId === proj.projectId &&
                     projectTimelines[proj.projectId] && (
                       <div className="mt-4 bg-gray-100 rounded-lg p-3 space-y-4">
@@ -392,43 +551,21 @@ export default function ProjectsPage() {
                           <h4 className="text-sm font-semibold mb-2 text-gray-700">
                             Tasks
                           </h4>
-                          {projectTimelines[proj.projectId].tasks.map(
-                            (task) => (
-                              <div
-                                key={task.taskId}
-                                className="p-2 mb-2 rounded border bg-white text-sm text-gray-800"
-                              >
-                                <div className="font-medium">{task.name}</div>
-                                <div className="text-xs text-gray-500">
-                                  {new Date(
-                                    task.startDate
-                                  ).toLocaleDateString()}{" "}
-                                  -{" "}
-                                  {new Date(task.endDate).toLocaleDateString()}
-                                </div>
-                                <div className="text-xs">
-                                  Assignee: {task.assignee}
-                                </div>
-                                <div className="text-xs">Role: {task.role}</div>
-                                <div className="text-xs">
-                                  Status: {task.status}
-                                </div>
-                                <div className="text-xs">
-                                  Priority: {task.priority}
-                                </div>
-                                {/* Update Task Button */}
-                                <button
-                                  className="mt-2 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEditTaskClick(task);
-                                  }}
-                                >
-                                  Update Task
-                                </button>
+                          {projectTimelines[proj.projectId].tasks.map((task) => (
+                            <div
+                              key={task.taskId}
+                              className="p-2 mb-2 rounded border bg-white text-sm text-gray-800"
+                            >
+                              <div className="font-medium">{task.name}</div>
+                              <div className="text-xs text-gray-500">
+                                {new Date(task.startDate).toLocaleDateString()} - {new Date(task.endDate).toLocaleDateString()}
                               </div>
-                            )
-                          )}
+                              <div className="text-xs">Assignee: {task.assignee}</div>
+                              <div className="text-xs">Role: {task.role}</div>
+                              <div className="text-xs">Status: {task.status}</div>
+                              <div className="text-xs">Priority: {task.priority}</div>
+                            </div>
+                          ))}
                         </div>
                         <div>
                           <h4 className="text-sm font-semibold mb-2 text-gray-700">
@@ -443,9 +580,7 @@ export default function ProjectsPage() {
                                 >
                                   <div>{milestone.name}</div>
                                   <div className="text-xs text-gray-500">
-                                    {new Date(
-                                      milestone.date
-                                    ).toLocaleDateString()}
+                                    {new Date(milestone.date).toLocaleDateString()}
                                   </div>
                                 </div>
                               )
@@ -458,55 +593,40 @@ export default function ProjectsPage() {
                         </div>
                       </div>
                     )}
-                  {/* Upload Scope Button if scope is not defined */}
-                  {!projectsWithTimeline[proj.projectId] && (
-                    <button
-                      className="mt-2 bg-[#0E1422] ml-2 text-white px-3 py-1 rounded hover:bg-yellow-600 transition text-sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setScopeUploadProjectId(proj.projectId);
-                      }}
-                    >
-                      Upload Scope
-                    </button>
-                  )}
                 </div>
               ))}
             </div>
-            {/* Footer Pagination */}
+            {/* Pagination */}
             <div className="flex justify-between items-center mt-6 text-xs text-gray-600">
               <div>
-                Showing {projects.length === 0 ? 0 : startIdx + 1}-
-                {Math.min(endIdx, projects.length)} of {projects.length}{" "}
-                projects
+                Showing {pagination.totalItems === 0 ? 0 : (pagination.currentPage - 1) * pagination.itemsPerPage + 1}-
+                {Math.min(pagination.currentPage * pagination.itemsPerPage, pagination.totalItems)} of {pagination.totalItems} projects
               </div>
               <div className="flex items-center space-x-2">
                 <button
                   className="px-2 py-1 border rounded-md bg-white hover:bg-gray-200"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
+                  onClick={() => fetchProjects(pagination.currentPage - 1)}
+                  disabled={pagination.currentPage === 1}
                 >
                   {"<"}
                 </button>
-                {Array.from({ length: totalPages }).map((_, i) => (
+                {Array.from({ length: pagination.totalPages }).map((_, i) => (
                   <button
                     key={i}
                     className={`px-3 py-1 border rounded-md ${
-                      currentPage === i + 1
+                      pagination.currentPage === i + 1
                         ? "bg-blue-600 text-white"
                         : "hover:bg-gray-200"
                     }`}
-                    onClick={() => setCurrentPage(i + 1)}
+                    onClick={() => fetchProjects(i + 1)}
                   >
                     {i + 1}
                   </button>
                 ))}
                 <button
                   className="px-2 py-1 border rounded-md bg-white hover:bg-gray-200"
-                  onClick={() =>
-                    setCurrentPage((p) => Math.min(totalPages, p + 1))
-                  }
-                  disabled={currentPage === totalPages}
+                  onClick={() => fetchProjects(pagination.currentPage + 1)}
+                  disabled={pagination.currentPage === pagination.totalPages}
                 >
                   {">"}
                 </button>
@@ -514,7 +634,7 @@ export default function ProjectsPage() {
             </div>
           </>
         )}
-        {/* Modal for project detail */}
+        {/* Project Detail Modal */}
         {modalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
             <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
@@ -528,7 +648,6 @@ export default function ProjectsPage() {
               >
                 <IoCloseCircleOutline size={24} />
               </button>
-
               {detailLoading ? (
                 <div className="text-center py-10">Loading...</div>
               ) : projectDetail && !("error" in projectDetail) ? (
@@ -543,143 +662,343 @@ export default function ProjectsPage() {
                     Complexity: {projectDetail.complexity}
                   </div>
                   <div className="mb-2 text-gray-600">
-                    Delivery Date:{" "}
-                    {projectDetail.deliveryDate
-                      ? new Date(
-                          projectDetail.deliveryDate
-                        ).toLocaleDateString()
-                      : ""}
+                    Delivery Date: {projectDetail.deliveryDate ? new Date(projectDetail.deliveryDate).toLocaleDateString() : ""}
                   </div>
                   <div className="mb-2 text-gray-600">
                     Team:
                     <ul className="list-disc ml-6">
                       {projectDetail.team?.map((member, idx) => (
                         <li key={member._id || idx}>
-                          {member.name} ({member.role}) - Availability:{" "}
-                          {member.availability}
+                          {member.name} ({member.role}) - Availability: {member.availability}
                         </li>
                       ))}
                     </ul>
                   </div>
+                  <button
+                    onClick={() => openEditProjectModal(projectDetail)}
+                    className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                    Edit Project
+                  </button>
                 </>
               ) : (
                 <div className="text-red-500">
-                  {(projectDetail as { error?: string })?.error ||
-                    "No details found."}
+                  {(projectDetail as { error?: string })?.error || "No details found."}
                 </div>
               )}
             </div>
           </div>
         )}
-        {/* Edit Task Modal */}
-        {editTaskModalOpen && (
+        {/* Edit Timeline Modal */}
+        {editTimelineModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl relative overflow-y-auto max-h-[80vh]">
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
+                onClick={() => setEditTimelineModalOpen(false)}
+              >
+                <IoCloseCircleOutline size={24} />
+              </button>
+              <h2 className="text-xl font-bold mb-4 text-black">Edit Timeline</h2>
+              {timelineLoading ? (
+                <div className="text-center py-10">Loading timeline...</div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 text-gray-700">Tasks</h3>
+                    {editTasks.length > 0 ? (
+                      editTasks.map((task, index) => (
+                        <div key={task.taskId} className="p-3 mb-2 border rounded bg-gray-50">
+                          <input
+                            type="text"
+                            value={task.name}
+                            onChange={(e) => handleTaskChange(index, "name", e.target.value)}
+                            className="w-full border rounded p-1 mb-2 text-sm"
+                            placeholder="Task Name"
+                          />
+                          <select
+                            value={task.status}
+                            onChange={(e) => handleTaskChange(index, "status", e.target.value)}
+                            className="w-full border rounded p-1 mb-2 text-sm"
+                          >
+                            <option value="To Do">To Do</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Delayed">Delayed</option>
+                          </select>
+                          <input
+                            type="text"
+                            value={task.assignee}
+                            onChange={(e) => handleTaskChange(index, "assignee", e.target.value)}
+                            className="w-full border rounded p-1 mb-2 text-sm"
+                            placeholder="Assignee"
+                          />
+                          <input
+                            type="text"
+                            value={task.role}
+                            onChange={(e) => handleTaskChange(index, "role", e.target.value)}
+                            className="w-full border rounded p-1 mb-2 text-sm"
+                            placeholder="Role"
+                          />
+                          <select
+                            value={task.priority}
+                            onChange={(e) => handleTaskChange(index, "priority", e.target.value)}
+                            className="w-full border rounded p-1 mb-2 text-sm"
+                          >
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                          </select>
+                          <input
+                            type="date"
+                            value={task.startDate.split("T")[0]}
+                            onChange={(e) => handleTaskChange(index, "startDate", e.target.value)}
+                            className="w-full border rounded p-1 mb-2 text-sm"
+                          />
+                          <input
+                            type="date"
+                            value={task.endDate.split("T")[0]}
+                            onChange={(e) => handleTaskChange(index, "endDate", e.target.value)}
+                            className="w-full border rounded p-1 mb-2 text-sm"
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-gray-500 text-sm">No tasks available</div>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 text-gray-700">Milestones</h3>
+                    {editMilestones.length > 0 ? (
+                      editMilestones.map((milestone, index) => (
+                        <div key={milestone._id} className="p-3 mb-2 border rounded bg-gray-50">
+                          <input
+                            type="text"
+                            value={milestone.name}
+                            onChange={(e) => handleMilestoneChange(index, "name", e.target.value)}
+                            className="w-full border rounded p-1 mb-2 text-sm"
+                            placeholder="Milestone Name"
+                          />
+                          <input
+                            type="date"
+                            value={milestone.date.split("T")[0]}
+                            onChange={(e) => handleMilestoneChange(index, "date", e.target.value)}
+                            className="w-full border rounded p-1 mb-2 text-sm"
+                          />
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-gray-500 text-sm">No milestones available</div>
+                    )}
+                  </div>
+                  <button
+                    onClick={saveTimelineChanges}
+                    className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-60"
+                    disabled={timelineLoading}
+                  >
+                    {timelineLoading ? "Saving..." : "Save Timeline"}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        {/* Edit Team Modal */}
+        {editTeamModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
             <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
               <button
                 className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
-                onClick={() => setEditTaskModalOpen(false)}
+                onClick={() => setEditTeamModalOpen(false)}
               >
                 <IoCloseCircleOutline size={24} />
               </button>
-              <h2 className="text-lg font-bold mb-4 text-black">Edit Task</h2>
-              <div className="mb-3">
-                <label className="block text-xs mb-1">Status</label>
-                <select
-                  name="status"
-                  value={editTaskForm.status}
-                  onChange={handleEditTaskFormChange}
-                  className="w-full border rounded px-2 py-1 text-sm"
+              <h2 className="text-xl font-bold mb-4 text-black">Edit Team</h2>
+              <div className="space-y-4">
+                {editTeamMembers.map((member, index) => (
+                  <div key={index} className="flex gap-2 items-center">
+                    <input
+                      type="text"
+                      value={member.name}
+                      onChange={(e) =>
+                        handleTeamMemberChange(index, "name", e.target.value)
+                      }
+                      className="border rounded p-1 text-sm flex-1"
+                      placeholder="Name"
+                    />
+                    <input
+                      type="text"
+                      value={member.role}
+                      onChange={(e) =>
+                        handleTeamMemberChange(index, "role", e.target.value)
+                      }
+                      className="border rounded p-1 text-sm flex-1"
+                      placeholder="Role"
+                    />
+                    <input
+                      type="number"
+                      value={member.availability}
+                      onChange={(e) =>
+                        handleTeamMemberChange(
+                          index,
+                          "availability",
+                          Number(e.target.value)
+                        )
+                      }
+                      className="border rounded p-1 text-sm w-20"
+                      placeholder="Availability"
+                    />
+                    <button
+                      onClick={() => removeTeamMember(index)}
+                      className="text-red-500 text-xs"
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={addTeamMember}
+                  className="text-blue-600 text-sm"
                 >
-                  <option value="">Select status</option>
-                  <option value="To Do">To Do</option>
-                  <option value="In Progress">In Progress</option>
-                  <option value="Done">Done</option>
-                </select>
+                  + Add Team Member
+                </button>
+                <button
+                  onClick={saveTeamChanges}
+                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-60"
+                  disabled={teamLoading}
+                >
+                  {teamLoading ? "Saving..." : "Save Team"}
+                </button>
               </div>
-              <div className="mb-3">
-                <label className="block text-xs mb-1">Assignee</label>
-                <input
-                  name="assignee"
-                  value={editTaskForm.assignee}
-                  onChange={handleEditTaskFormChange}
-                  className="w-full border rounded px-2 py-1 text-sm"
-                />
-              </div>
-              <div className="mb-3">
-                <label className="block text-xs mb-1">Start Date</label>
-                <input
-                  type="datetime-local"
-                  name="startDate"
-                  value={editTaskForm.startDate}
-                  onChange={handleEditTaskFormChange}
-                  className="w-full border rounded px-2 py-1 text-sm"
-                />
-              </div>
-              <div className="mb-3">
-                <label className="block text-xs mb-1">End Date</label>
-                <input
-                  type="datetime-local"
-                  name="endDate"
-                  value={editTaskForm.endDate}
-                  onChange={handleEditTaskFormChange}
-                  className="w-full border rounded px-2 py-1 text-sm"
-                />
-              </div>
-              <button
-                className="mt-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full"
-                onClick={handleSaveTaskEdit}
-                disabled={editTaskLoading}
-              >
-                {editTaskLoading ? 'Saving...' : 'Save'}
-              </button>
             </div>
           </div>
         )}
-        {/* Status Update Modal */}
-        {statusModalOpen && (
+        {/* Edit Project Modal */}
+        {editProjectModalOpen && editProject && (
           <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
-            <div className="bg-white rounded-lg p-6 w-full max-w-xs relative">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
               <button
                 className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
-                onClick={() => {
-                  setStatusModalOpen(false);
-                  setStatusProjectId(null);
-                  setSelectedStatus("");
-                }}
+                onClick={() => setEditProjectModalOpen(false)}
               >
                 <IoCloseCircleOutline size={24} />
               </button>
-              <h2 className="text-lg font-bold mb-4 text-black text-center">Do you want to update the status?</h2>
-              <div className="mb-4">
-                <select
-                  className="w-full border rounded px-2 py-2 text-sm"
-                  value={selectedStatus}
-                  onChange={e => setSelectedStatus(e.target.value)}
-                >
-                  <option value="">Select status</option>
-                  <option value="Active">Active</option>
-                  <option value="Completed">Completed</option>
-                  <option value="On Hold">On Hold</option>
-                  <option value="Cancelled">Cancelled</option>
-                </select>
-              </div>
-              <div className="flex justify-center gap-4 mt-4">
+              <h2 className="text-xl font-bold mb-4 text-black">Edit Project</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-black">Project Name</label>
+                  <input
+                    type="text"
+                    value={editProject.name}
+                    onChange={(e) => handleProjectChange("name", e.target.value)}
+                    className="w-full border rounded p-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-black">Delivery Date</label>
+                  <input
+                    type="date"
+                    value={editProject.deliveryDate?.split("T")[0] || ""}
+                    onChange={(e) => handleProjectChange("deliveryDate", e.target.value)}
+                    className="w-full border rounded p-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-black">Complexity</label>
+                  <select
+                    value={editProject.complexity}
+                    onChange={(e) => handleProjectChange("complexity", e.target.value)}
+                    className="w-full border rounded p-1 text-sm"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-black">Status</label>
+                  <select
+                    value={editProject.status}
+                    onChange={(e) => handleProjectChange("status", e.target.value)}
+                    className="w-full border rounded p-1 text-sm"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                    <option value="On Hold">On Hold</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-black">Team Members</label>
+                  {editProject.team?.map((member, index) => (
+                    <div key={index} className="flex gap-2 items-center mb-2">
+                      <input
+                        type="text"
+                        value={member.name}
+                        onChange={(e) => {
+                          const updatedTeam = [...(editProject.team || [])];
+                          updatedTeam[index].name = e.target.value;
+                          setEditProject({ ...editProject, team: updatedTeam });
+                        }}
+                        className="border rounded p-1 text-sm flex-1"
+                        placeholder="Name"
+                      />
+                      <input
+                        type="text"
+                        value={member.role}
+                        onChange={(e) => {
+                          const updatedTeam = [...(editProject.team || [])];
+                          updatedTeam[index].role = e.target.value;
+                          setEditProject({ ...editProject, team: updatedTeam });
+                        }}
+                        className="border rounded p-1 text-sm flex-1"
+                        placeholder="Role"
+                      />
+                      <input
+                        type="number"
+                        value={member.availability}
+                        onChange={(e) => {
+                          const updatedTeam = [...(editProject.team || [])];
+                          updatedTeam[index].availability = Number(e.target.value);
+                          setEditProject({ ...editProject, team: updatedTeam });
+                        }}
+                        className="border rounded p-1 text-sm w-20"
+                        placeholder="Availability"
+                      />
+                      <button
+                        onClick={() => {
+                          const updatedTeam = (editProject.team || []).filter(
+                            (_, i) => i !== index
+                          );
+                          setEditProject({ ...editProject, team: updatedTeam });
+                        }}
+                        className="text-red-500 text-xs"
+                      >
+                        X
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setEditProject({
+                        ...editProject,
+                        team: [
+                          ...(editProject.team || []),
+                          { name: "", role: "", availability: 0 },
+                        ],
+                      });
+                    }}
+                    className="text-blue-600 text-sm"
+                  >
+                    + Add Team Member
+                  </button>
+                </div>
                 <button
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                  onClick={handleStatusUpdate}
-                  disabled={!selectedStatus}
+                  onClick={saveProjectChanges}
+                  className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-60"
+                  disabled={projectLoading}
                 >
-                  Yes
-                </button>
-                <button
-                  className="bg-gray-200 text-gray-700 px-4 py-2 rounded hover:bg-gray-300"
-                  onClick={() => {
-                    setStatusModalOpen(false);
-                    setStatusProjectId(null);
-                    setSelectedStatus("");
-                  }}
-                >
-                  No
+                  {projectLoading ? "Saving..." : "Save Project"}
                 </button>
               </div>
             </div>
@@ -691,7 +1010,7 @@ export default function ProjectsPage() {
             projectId={scopeUploadProjectId}
             onClose={() => {
               setScopeUploadProjectId(null);
-              fetchProjects(); // Refresh list after upload
+              fetchProjects(pagination.currentPage);
             }}
           />
         )}
@@ -699,8 +1018,3 @@ export default function ProjectsPage() {
     </div>
   );
 }
-
-
-
-
-
