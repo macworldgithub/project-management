@@ -88,7 +88,8 @@ const TimelineDashboard = () => {
               timelinesObj[proj.projectId] = timelineRes.data;
             }
           } catch {
-            toast.error(`Failed to fetch timeline for project ${proj.name}`);
+            // toast.error(`Failed to fetch timeline for project ${proj.name}`);
+            console.log('as')
           }
         })
       );
