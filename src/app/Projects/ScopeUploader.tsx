@@ -89,7 +89,7 @@ const ScopeUploader: React.FC<ScopeUploaderProps> = ({
       }
       if (complexity) formData.append("complexity", complexity);
 
-      const apiUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/scope`;
+      const apiUrl = `https://www.pm.justjdmcars.com.au/api/projects/${projectId}/scope`;
       await axios.post(apiUrl, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });

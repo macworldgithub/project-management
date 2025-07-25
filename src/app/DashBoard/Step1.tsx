@@ -68,7 +68,7 @@ const TimelineDashboard = () => {
     const fetchData = async () => {
       setLoading(true);
       const res = await axios.get(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`
+        `https://www.pm.justjdmcars.com.au/api/projects`
       );
       const projects: Project[] = Array.isArray(res.data) ? res.data : [];
       setAllProjects(projects); // ✅ store all projects for counting
@@ -78,7 +78,7 @@ const TimelineDashboard = () => {
         projects.map(async (proj: Project) => {
           try {
             const timelineRes = await axios.get(
-              `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${proj.projectId}/timeline`
+              `https://www.pm.justjdmcars.com.au/api/projects/${proj.projectId}/timeline`
             );
             if (
               (timelineRes.data?.tasks && timelineRes.data.tasks.length > 0) ||

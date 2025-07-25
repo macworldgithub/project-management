@@ -295,7 +295,7 @@ const Step2 = () => {
       // Fetch Risk Alerts
       try {
         const riskRes = await axios.get<RiskAlert[]>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/risks`
+          `https://www.pm.justjdmcars.com.au/api/risks`
         );
         setRiskAlerts(riskRes.data);
       } catch (err: any) {
@@ -314,7 +314,7 @@ const Step2 = () => {
       // Fetch Upcoming Milestones
       try {
         const milestoneRes = await axios.get<MilestoneResponse>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/milestones?days=30&page=${milestonePagination.currentPage}&limit=5`
+          `https://www.pm.justjdmcars.com.au/api/projects/milestones?days=30&page=${milestonePagination.currentPage}&limit=5`
         );
         console.log("Milestones Response:", milestoneRes.data); // Debug log
         // Ensure data is an array
@@ -360,7 +360,7 @@ const Step2 = () => {
       // Fetch Task Completion
       try {
         const completionRes = await axios.get<TaskCompletion>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks/completion`
+          `https://www.pm.justjdmcars.com.au/api/tasks/completion`
         );
         setTaskCompletion(completionRes.data);
       } catch (err: any) {
@@ -379,7 +379,7 @@ const Step2 = () => {
       // Fetch Team Workload
       try {
         const workloadRes = await axios.get<TeamWorkload>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/workload`
+          `https://www.pm.justjdmcars.com.au/api/workload`
         );
         setTeamWorkload(workloadRes.data);
       } catch (err: any) {
@@ -398,7 +398,7 @@ const Step2 = () => {
       // Fetch Project Health
       try {
         const healthRes = await axios.get<ProjectHealthResponse>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/health?page=${projectPagination.currentPage}&limit=5`
+          `https://www.pm.justjdmcars.com.au/api/projects/health?page=${projectPagination.currentPage}&limit=5`
         );
         setProjectHealth(healthRes.data.data);
         setProjectPagination({

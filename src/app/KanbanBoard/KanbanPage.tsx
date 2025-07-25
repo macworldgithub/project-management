@@ -102,7 +102,7 @@ export default function KanbanPage() {
     // Fetch projects
     const fetchProjects = async () => {
       try {
-        const response = await axios.get<Project[]>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`);
+        const response = await axios.get<Project[]>(`https://www.pm.justjdmcars.com.au/api/projects`);
         setProjects(response.data);
         if (response.data.length > 0) {
           setSelectedProjectId(response.data[0].projectId);
@@ -125,7 +125,7 @@ export default function KanbanPage() {
       setError(null);
       try {
         const response = await axios.get<Task[]>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/tasks?projectId=${selectedProjectId}`
+          `https://www.pm.justjdmcars.com.au/api/tasks?projectId=${selectedProjectId}`
         );
         console.log('Tasks Response:', response.data); // Debug log
         const tasks = response.data;

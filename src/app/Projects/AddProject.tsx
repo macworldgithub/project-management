@@ -86,7 +86,7 @@ export default function AddProject() {
       return;
     setLoading(true);
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects`, {
+      await axios.post(`https://www.pm.justjdmcars.com.au/api/projects`, {
         name,
         deliveryDate: new Date(deliveryDate).toISOString(),
         complexity,
@@ -150,7 +150,7 @@ export default function AddProject() {
       );
       formData.append("complexity", complexity);
       await axios.post(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/scope`,
+        `https://www.pm.justjdmcars.com.au/api/projects/scope`,
         formData,
         {
           headers: {

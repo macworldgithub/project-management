@@ -124,7 +124,7 @@ export default function ProjectsPage() {
       const res = await axios.get<{
         data: Project[];
         pagination: Pagination;
-      }>(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/search`, {
+      }>(`https://www.pm.justjdmcars.com.au/api/projects/search`, {
         params: {
           search: searchQuery,
           status: statusFilter,
@@ -155,7 +155,7 @@ export default function ProjectsPage() {
         projects.map(async (proj) => {
           try {
             const res = await axios.get(
-              `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${proj.projectId}/timeline`
+              `https://www.pm.justjdmcars.com.au/api/projects/${proj.projectId}/timeline`
             );
             results[proj.projectId!] =
               (res.data?.tasks && res.data.tasks.length > 0) ||
@@ -180,7 +180,7 @@ export default function ProjectsPage() {
     try {
       setLoadingProjectId(projectId);
       const response = await axios.get<Timeline>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/timeline`
+        `https://www.pm.justjdmcars.com.au/api/projects/${projectId}/timeline`
       );
       setProjectTimelines((prev) => ({
         ...prev,
@@ -200,7 +200,7 @@ export default function ProjectsPage() {
     setTimelineLoading(true);
     try {
       const response = await axios.get<Timeline>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}/timeline`
+        `https://www.pm.justjdmcars.com.au/api/projects/${projectId}/timeline`
       );
       setEditTasks(response.data.tasks || []);
       setEditMilestones(response.data.milestones || []);
@@ -248,7 +248,7 @@ export default function ProjectsPage() {
     try {
       // Update the entire timeline (tasks and milestones)
       await axios.put(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${editTimelineProjectId}/timeline`,
+        `https://www.pm.justjdmcars.com.au/api/projects/${editTimelineProjectId}/timeline`,
         {
           tasks: editTasks.map((task) => ({
             taskId: task.taskId,
@@ -317,7 +317,7 @@ export default function ProjectsPage() {
     setTeamLoading(true);
     try {
       await axios.put(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${editTeamProjectId}`,
+        `https://www.pm.justjdmcars.com.au/api/projects/${editTeamProjectId}`,
         { team: editTeamMembers }
       );
       await fetchProjects(pagination.currentPage);
@@ -347,7 +347,7 @@ export default function ProjectsPage() {
     setProjectLoading(true);
     try {
       await axios.put(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${editProject.projectId}`,
+        `https://www.pm.justjdmcars.com.au/api/projects/${editProject.projectId}`,
         {
           name: editProject.name,
           deliveryDate: editProject.deliveryDate,
@@ -375,7 +375,7 @@ export default function ProjectsPage() {
     setDetailLoading(true);
     try {
       const res = await axios.get<Project>(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/${projectId}`
+        `https://www.pm.justjdmcars.com.au/api/projects/${projectId}`
       );
       setProjectDetail(res.data);
     } catch (err) {
