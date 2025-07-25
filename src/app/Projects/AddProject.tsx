@@ -269,7 +269,7 @@ export default function AddProject() {
                   onChange={(e) =>
                     setScopeFile(e.target.files ? e.target.files[0] : null)
                   }
-                  className="w-full border px-3 py-2 rounded text-sm mb-3 placeholder:text-gray-500"
+                  className="w-full border px-3 py-2 rounded text-sm mb-3 placeholder:text-gray-500 text-gray-700"
                   required
                 />
                 <label className="block text-sm font-medium mb-1 text-black">
@@ -316,7 +316,7 @@ export default function AddProject() {
                     </select>
                     <input
                       type="number"
-                      placeholder="Availability"
+                      placeholder="available hours"
                       value={member.availability}
                       onChange={(e) =>
                         handleScopeTeamChange(
@@ -325,7 +325,7 @@ export default function AddProject() {
                           e.target.value
                         )
                       }
-                      className="border px-2 py-1 rounded text-xs w-20"
+                      className="border px-2 py-1 rounded text-[0.8rem] w-28"
                     />
                     {scopeTeam.length > 1 && (
                       <button
@@ -382,14 +382,14 @@ export default function AddProject() {
                   placeholder="Project Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full border px-3 py-2 rounded text-sm mb-3"
+                  className="w-full border px-3 py-2 rounded text-sm mb-3 text-black placeholder:text-gray-500"
                 />
 
                 <input
                   type="date"
                   value={deliveryDate}
                   onChange={(e) => setDeliveryDate(e.target.value)}
-                  className="w-full border px-3 py-2 rounded text-sm mb-3"
+                  className="w-full border px-3 py-2 rounded text-sm mb-3 text-black"
                 />
 
                 <select
@@ -435,7 +435,7 @@ export default function AddProject() {
                       </select>
                       <input
                         type="number"
-                        placeholder="Availability"
+                        placeholder="Available hours"
                         value={member.availability}
                         onChange={(e) =>
                           handleTeamChange(idx, "availability", e.target.value)

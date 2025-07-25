@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -50,8 +49,12 @@ type Timeline = {
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [projectsWithTimeline, setProjectsWithTimeline] = useState<{ [id: string]: boolean }>({});
-  const [projectTimelines, setProjectTimelines] = useState<Record<string, Timeline>>({});
+  const [projectsWithTimeline, setProjectsWithTimeline] = useState<{
+    [id: string]: boolean;
+  }>({});
+  const [projectTimelines, setProjectTimelines] = useState<
+    Record<string, Timeline>
+  >({});
   const [loadingProjectId, setLoadingProjectId] = useState<string | null>(null);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -59,23 +62,29 @@ export default function ProjectsPage() {
   const router = useRouter();
 
   // Modal and detail state
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [projectDetail, setProjectDetail] = useState<Project | { error: string } | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    null
+  );
+  const [projectDetail, setProjectDetail] = useState<
+    Project | { error: string } | null
+  >(null);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [detailLoading, setDetailLoading] = useState<boolean>(false);
   const [openTimelineId, setOpenTimelineId] = useState<string | null>(null);
 
   // Add state for ScopeUploader modal
-  const [scopeUploadProjectId, setScopeUploadProjectId] = useState<string | null>(null);
+  const [scopeUploadProjectId, setScopeUploadProjectId] = useState<
+    string | null
+  >(null);
 
   // Add state for editing a task
   const [editTaskModalOpen, setEditTaskModalOpen] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<any>(null);
   const [editTaskForm, setEditTaskForm] = useState({
-    status: '',
-    assignee: '',
-    startDate: '',
-    endDate: '',
+    status: "",
+    assignee: "",
+    startDate: "",
+    endDate: "",
   });
   const [editTaskLoading, setEditTaskLoading] = useState(false);
 
@@ -182,16 +191,18 @@ export default function ProjectsPage() {
   const handleEditTaskClick = (task: any) => {
     setTaskToEdit(task);
     setEditTaskForm({
-      status: task.status || '',
-      assignee: task.assignee || '',
-      startDate: task.startDate ? task.startDate.slice(0, 16) : '',
-      endDate: task.endDate ? task.endDate.slice(0, 16) : '',
+      status: task.status || "",
+      assignee: task.assignee || "",
+      startDate: task.startDate ? task.startDate.slice(0, 16) : "",
+      endDate: task.endDate ? task.endDate.slice(0, 16) : "",
     });
     setEditTaskModalOpen(true);
   };
 
   // Handler for form changes
-  const handleEditTaskFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleEditTaskFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setEditTaskForm((prev) => ({ ...prev, [name]: value }));
   };
@@ -210,13 +221,13 @@ export default function ProjectsPage() {
           endDate: new Date(editTaskForm.endDate).toISOString(),
         }
       );
-      toast.success('Task updated successfully');
+      toast.success("Task updated successfully");
       // Refresh timeline for the project
       if (openTimelineId) await fetchProjectTimeline(openTimelineId);
       setEditTaskModalOpen(false);
       setTaskToEdit(null);
     } catch (err) {
-      toast.error('Failed to update task');
+      toast.error("Failed to update task");
     } finally {
       setEditTaskLoading(false);
     }
@@ -238,7 +249,9 @@ export default function ProjectsPage() {
       toast.success("Status updated successfully");
       setProjects((prev) =>
         prev.map((proj) =>
-          proj.projectId === statusProjectId ? { ...proj, status: selectedStatus } : proj
+          proj.projectId === statusProjectId
+            ? { ...proj, status: selectedStatus }
+            : proj
         )
       );
       setStatusModalOpen(false);
@@ -583,12 +596,12 @@ export default function ProjectsPage() {
               </button>
               <h2 className="text-lg font-bold mb-4 text-black">Edit Task</h2>
               <div className="mb-3">
-                <label className="block text-xs mb-1">Status</label>
+                <label className="block text-sm mb-1  text-black">Status</label>
                 <select
                   name="status"
                   value={editTaskForm.status}
                   onChange={handleEditTaskFormChange}
-                  className="w-full border rounded px-2 py-1 text-sm"
+                  className="w-full border rounded px-2 py-1 text-sm text-black"
                 >
                   <option value="">Select status</option>
                   <option value="To Do">To Do</option>
@@ -597,32 +610,38 @@ export default function ProjectsPage() {
                 </select>
               </div>
               <div className="mb-3">
-                <label className="block text-xs mb-1">Assignee</label>
+                <label className="block text-xs mb-1 text-black">
+                  Assignee
+                </label>
                 <input
                   name="assignee"
                   value={editTaskForm.assignee}
                   onChange={handleEditTaskFormChange}
-                  className="w-full border rounded px-2 py-1 text-sm"
+                  className="w-full border rounded px-2 py-1 text-sm text-black"
                 />
               </div>
               <div className="mb-3">
-                <label className="block text-xs mb-1">Start Date</label>
+                <label className="block text-xs mb-1 text-black">
+                  Start Date
+                </label>
                 <input
                   type="datetime-local"
                   name="startDate"
                   value={editTaskForm.startDate}
                   onChange={handleEditTaskFormChange}
-                  className="w-full border rounded px-2 py-1 text-sm"
+                  className="w-full border rounded px-2 py-1 text-sm text-black"
                 />
               </div>
               <div className="mb-3">
-                <label className="block text-xs mb-1">End Date</label>
+                <label className="block text-xs mb-1 text-black">
+                  End Date
+                </label>
                 <input
                   type="datetime-local"
                   name="endDate"
                   value={editTaskForm.endDate}
                   onChange={handleEditTaskFormChange}
-                  className="w-full border rounded px-2 py-1 text-sm"
+                  className="w-full border rounded px-2 py-1 text-sm text-black"
                 />
               </div>
               <button
@@ -630,7 +649,7 @@ export default function ProjectsPage() {
                 onClick={handleSaveTaskEdit}
                 disabled={editTaskLoading}
               >
-                {editTaskLoading ? 'Saving...' : 'Save'}
+                {editTaskLoading ? "Saving..." : "Save"}
               </button>
             </div>
           </div>
@@ -649,12 +668,14 @@ export default function ProjectsPage() {
               >
                 <IoCloseCircleOutline size={24} />
               </button>
-              <h2 className="text-lg font-bold mb-4 text-black text-center">Do you want to update the status?</h2>
+              <h2 className="text-lg font-bold mb-4 text-black text-center">
+                Do you want to update the status?
+              </h2>
               <div className="mb-4">
                 <select
-                  className="w-full border rounded px-2 py-2 text-sm"
+                  className="w-full border rounded px-2 py-2 text-sm text-black"
                   value={selectedStatus}
-                  onChange={e => setSelectedStatus(e.target.value)}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
                 >
                   <option value="">Select status</option>
                   <option value="Active">Active</option>
