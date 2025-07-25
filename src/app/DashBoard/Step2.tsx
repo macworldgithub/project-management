@@ -245,6 +245,16 @@ interface ProjectHealthResponse {
   };
 }
 
+interface MilestoneResponse {
+  data: Milestone[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
+}
+
 const Step2 = () => {
   const [riskAlerts, setRiskAlerts] = useState<RiskAlert[]>([]);
   const [milestones, setMilestones] = useState<Milestone[]>([]);
@@ -262,7 +272,13 @@ const Step2 = () => {
     Design: 0,
   });
   const [projectHealth, setProjectHealth] = useState<ProjectHealth[]>([]);
-  const [pagination, setPagination] = useState<{
+  const [projectPagination, setProjectPagination] = useState<{
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  }>({ currentPage: 1, totalPages: 1, totalItems: 0, itemsPerPage: 5 });
+  const [milestonePagination, setMilestonePagination] = useState<{
     currentPage: number;
     totalPages: number;
     totalItems: number;
@@ -293,13 +309,43 @@ const Step2 = () => {
 
       // Fetch Upcoming Milestones
       try {
-        const milestoneRes = await axios.get<Milestone[]>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/milestones?days=30`
+        const milestoneRes = await axios.get<MilestoneResponse>(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/milestones?days=30&page=${milestonePagination.currentPage}&limit=5`
         );
         console.log("Milestones Response:", milestoneRes.data); // Debug log
-        setMilestones(milestoneRes.data);
+        // Ensure data is an array
+        if (milestoneRes.data && Array.isArray(milestoneRes.data.data)) {
+          setMilestones(milestoneRes.data.data);
+          setMilestonePagination({
+            currentPage: milestoneRes.data.pagination?.currentPage || 1,
+            totalPages: milestoneRes.data.pagination?.totalPages || 1,
+            totalItems: milestoneRes.data.pagination?.totalItems || 0,
+            itemsPerPage: milestoneRes.data.pagination?.itemsPerPage || 5,
+          });
+        } else {
+          console.warn("Milestones data is not an array:", milestoneRes.data);
+          setMilestones([]);
+          setMilestonePagination({
+            currentPage: 1,
+            totalPages: 1,
+            totalItems: 0,
+            itemsPerPage: 5,
+          });
+          setApiErrors(prev => ({
+            ...prev,
+            milestones: "Invalid milestones data format",
+          }));
+          toast.error("Invalid milestones data format");
+        }
       } catch (err: any) {
         console.error("Milestones API error:", err.message, err.response?.data);
+        setMilestones([]);
+        setMilestonePagination({
+          currentPage: 1,
+          totalPages: 1,
+          totalItems: 0,
+          itemsPerPage: 5,
+        });
         setApiErrors(prev => ({
           ...prev,
           milestones: `Failed to fetch milestones: ${err.message}`,
@@ -340,10 +386,10 @@ const Step2 = () => {
       // Fetch Project Health
       try {
         const healthRes = await axios.get<ProjectHealthResponse>(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/health?page=${pagination.currentPage}&limit=5`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/projects/health?page=${projectPagination.currentPage}&limit=5`
         );
         setProjectHealth(healthRes.data.data);
-        setPagination({
+        setProjectPagination({
           currentPage: healthRes.data.pagination.currentPage,
           totalPages: healthRes.data.pagination.totalPages,
           totalItems: healthRes.data.pagination.totalItems,
@@ -362,18 +408,31 @@ const Step2 = () => {
       setLoading(false);
     };
     fetchData();
-  }, [pagination.currentPage]);
+  }, [projectPagination.currentPage, milestonePagination.currentPage]);
 
-  // Handle pagination
-  const handlePreviousPage = () => {
-    if (pagination.currentPage > 1) {
-      setPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }));
+  // Handle project pagination
+  const handlePreviousProjectPage = () => {
+    if (projectPagination.currentPage > 1) {
+      setProjectPagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }));
     }
   };
 
-  const handleNextPage = () => {
-    if (pagination.currentPage < pagination.totalPages) {
-      setPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }));
+  const handleNextProjectPage = () => {
+    if (projectPagination.currentPage < projectPagination.totalPages) {
+      setProjectPagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }));
+    }
+  };
+
+  // Handle milestone pagination
+  const handlePreviousMilestonePage = () => {
+    if (milestonePagination.currentPage > 1) {
+      setMilestonePagination(prev => ({ ...prev, currentPage: prev.currentPage - 1 }));
+    }
+  };
+
+  const handleNextMilestonePage = () => {
+    if (milestonePagination.currentPage < milestonePagination.totalPages) {
+      setMilestonePagination(prev => ({ ...prev, currentPage: prev.currentPage + 1 }));
     }
   };
 
@@ -475,9 +534,23 @@ const Step2 = () => {
         <div className="bg-white rounded-lg p-4 shadow">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Upcoming Milestones</h2>
-            <a href="#" className="text-sm text-blue-600 flex items-center gap-1">
-              View Calendar <FaCalendarAlt size={14} />
-            </a>
+            <div className="text-xs text-gray-500 flex items-center gap-1">
+              <button
+                onClick={handlePreviousMilestonePage}
+                disabled={milestonePagination.currentPage === 1}
+                className={`cursor-pointer ${milestonePagination.currentPage === 1 ? "text-gray-300" : ""}`}
+              >
+                Previous <FaChevronRight className="inline rotate-180" />
+              </button>
+              <span>| Page {milestonePagination.currentPage} of {milestonePagination.totalPages} |</span>
+              <button
+                onClick={handleNextMilestonePage}
+                disabled={milestonePagination.currentPage === milestonePagination.totalPages}
+                className={`cursor-pointer ${milestonePagination.currentPage === milestonePagination.totalPages ? "text-gray-300" : ""}`}
+              >
+                Next <FaChevronRight className="inline" />
+              </button>
+            </div>
           </div>
           <div className="space-y-4">
             {loading ? (
@@ -494,8 +567,7 @@ const Step2 = () => {
                   </span>
                   <div>
                     <div className="font-medium text-sm">{milestone.name}</div>
-                    <div className="text-xs text-gray-600">{milestone.projectName}</div>
-                    <div className="text-xs text-gray-400">{milestone.assignee}</div>
+                    {/* <div className="text-xs text-gray-600">{milestone.projectName}</div> */}
                   </div>
                 </div>
               ))
@@ -579,17 +651,17 @@ const Step2 = () => {
               <h3 className="text-sm font-medium">Project Health</h3>
               <div className="text-xs text-gray-500 flex items-center gap-1">
                 <button
-                  onClick={handlePreviousPage}
-                  disabled={pagination.currentPage === 1}
-                  className={`cursor-pointer ${pagination.currentPage === 1 ? "text-gray-300" : ""}`}
+                  onClick={handlePreviousProjectPage}
+                  disabled={projectPagination.currentPage === 1}
+                  className={`cursor-pointer ${projectPagination.currentPage === 1 ? "text-gray-300" : ""}`}
                 >
                   Previous <FaChevronRight className="inline rotate-180" />
                 </button>
-                <span>| Page {pagination.currentPage} of {pagination.totalPages} |</span>
+                <span>| Page {projectPagination.currentPage} of {projectPagination.totalPages} |</span>
                 <button
-                  onClick={handleNextPage}
-                  disabled={pagination.currentPage === pagination.totalPages}
-                  className={`cursor-pointer ${pagination.currentPage === pagination.totalPages ? "text-gray-300" : ""}`}
+                  onClick={handleNextProjectPage}
+                  disabled={projectPagination.currentPage === projectPagination.totalPages}
+                  className={`cursor-pointer ${projectPagination.currentPage === projectPagination.totalPages ? "text-gray-300" : ""}`}
                 >
                   Next <FaChevronRight className="inline" />
                 </button>
