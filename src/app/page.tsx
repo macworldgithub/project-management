@@ -1,7 +1,12 @@
 
 import React from 'react';
-// import HomeComponent from './Home/page'; 
 import DashBoard from './DashBoard/page';
+import ProtectedRoute from '@/components/ProtectedRoute';
+
 export default function DashBoardPage() {
-  return <DashBoard/>;
+  return (
+    <ProtectedRoute>
+      <DashBoard/>
+    </ProtectedRoute>
+  );
 }
