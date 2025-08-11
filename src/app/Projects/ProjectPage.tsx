@@ -997,6 +997,7 @@ export default function ProjectsPage() {
             </div>
           </div>
         )}
+        
         {/* Edit Team Modal */}
         {editTeamModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/10">
