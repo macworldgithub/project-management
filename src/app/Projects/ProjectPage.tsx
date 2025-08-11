@@ -38,6 +38,7 @@ interface Milestone {
 interface Timeline {
   tasks: Task[];
   milestones: Milestone[];
+  progress?: number; // Added to store progress percentage
 }
 
 interface Project {
@@ -118,6 +119,30 @@ export default function ProjectsPage() {
   const [projectLoading, setProjectLoading] = useState<boolean>(false);
 
   // Fetch projects with search and filter
+  // const fetchProjects = async (page: number = 1) => {
+  //   setLoading(true);
+  //   try {
+  //     const res = await axios.get<{
+  //       data: Project[];
+  //       pagination: Pagination;
+  //     }>(`https://www.pm.justjdmcars.com.au/api/projects/search`, {
+  //       params: {
+  //         search: searchQuery,
+  //         status: statusFilter,
+  //         page,
+  //         limit: pagination.itemsPerPage,
+  //       },
+  //     });
+  //     setProjects(Array.isArray(res.data.data) ? res.data.data : []);
+  //     setPagination(res.data.pagination);
+  //   } catch (err) {
+  //     setProjects([]);
+  //     toast.error("Failed to fetch projects");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchProjects = async (page: number = 1) => {
     setLoading(true);
     try {
@@ -132,8 +157,62 @@ export default function ProjectsPage() {
           limit: pagination.itemsPerPage,
         },
       });
-      setProjects(Array.isArray(res.data.data) ? res.data.data : []);
+
+      const projectsData = Array.isArray(res.data.data) ? res.data.data : [];
+      setProjects(projectsData);
       setPagination(res.data.pagination);
+
+      // Filter out projects with undefined projectId
+      const validProjects = projectsData.filter(
+        (proj) => proj.projectId !== undefined
+      );
+
+      // Fetch timeline data for each project and calculate progress
+      const timelinePromises = validProjects.map(async (proj) => {
+        try {
+          const timelineRes = await axios.get<Timeline>(
+            `https://www.pm.justjdmcars.com.au/api/projects/${proj.projectId}/timeline`
+          );
+          const tasks = timelineRes.data.tasks || [];
+          const totalTasks = tasks.length;
+          const completedTasks = tasks.filter(
+            (task) => task.status === "Completed"
+          ).length;
+          const progress =
+            totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
+          return {
+            projectId: proj.projectId!,
+            progress,
+            timeline: timelineRes.data,
+          };
+        } catch (error) {
+          return {
+            projectId: proj.projectId!,
+            progress: 0,
+            timeline: { tasks: [], milestones: [] },
+          };
+        }
+      });
+
+      const timelineResults = await Promise.all(timelinePromises);
+      const newProjectTimelines = timelineResults.reduce(
+        (acc, { projectId, progress, timeline }) => {
+          acc[projectId] = { ...timeline, progress };
+          return acc;
+        },
+        {} as Record<string, Timeline>
+      );
+
+      setProjectTimelines(newProjectTimelines);
+      setProjectsWithTimeline(
+        timelineResults.reduce((acc, { projectId, timeline }) => {
+          acc[projectId] =
+            (timeline.tasks && timeline.tasks.length > 0) ||
+            (timeline.milestones && timeline.milestones.length > 0);
+          return acc;
+        }, {} as { [id: string]: boolean })
+      );
     } catch (err) {
       setProjects([]);
       toast.error("Failed to fetch projects");
@@ -170,7 +249,7 @@ export default function ProjectsPage() {
     checkTimelines();
   }, [projects]);
 
-  // Fetch project timeline
+  // Fetch project timeline and calculate progress
   const fetchProjectTimeline = async (projectId: string) => {
     if (openTimelineId === projectId) {
       setOpenTimelineId(null);
@@ -182,9 +261,17 @@ export default function ProjectsPage() {
       const response = await axios.get<Timeline>(
         `https://www.pm.justjdmcars.com.au/api/projects/${projectId}/timeline`
       );
+      // Calculate progress based on completed tasks
+      const tasks = response.data.tasks || [];
+      const totalTasks = tasks.length;
+      const completedTasks = tasks.filter(
+        (task) => task.status === "Completed"
+      ).length;
+      const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+
       setProjectTimelines((prev) => ({
         ...prev,
-        [projectId]: response.data,
+        [projectId]: { ...response.data, progress },
       }));
       setOpenTimelineId(projectId);
     } catch (error) {
@@ -204,9 +291,16 @@ export default function ProjectsPage() {
       );
       setEditTasks(response.data.tasks || []);
       setEditMilestones(response.data.milestones || []);
+      // Calculate progress for the timeline being edited
+      const tasks = response.data.tasks || [];
+      const totalTasks = tasks.length;
+      const completedTasks = tasks.filter(
+        (task) => task.status === "Completed"
+      ).length;
+      const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
       setProjectTimelines((prev) => ({
         ...prev,
-        [projectId]: response.data,
+        [projectId]: { ...response.data, progress },
       }));
       setEditTimelineModalOpen(true);
     } catch (error) {
@@ -483,11 +577,19 @@ export default function ProjectsPage() {
                   <div className="h-2 bg-gray-200 rounded-full mb-2">
                     <div
                       className={`h-full rounded-full bg-blue-600`}
-                      style={{ width: `50%` }}
+                      style={{
+                        width: `${
+                          projectTimelines[proj.projectId]?.progress || 0
+                        }%`,
+                      }}
                     />
                   </div>
                   <div className="text-sm text-gray-500 mb-2">
-                    Progress: 50%
+                    Progress:{" "}
+                    {Math.round(
+                      projectTimelines[proj.projectId]?.progress || 0
+                    )}
+                    %
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
                     <span>
@@ -564,7 +666,7 @@ export default function ProjectsPage() {
                             (task) => (
                               <div
                                 key={task.taskId}
-                                className="p-2 mb-2 rounded border  text-sm text-gray-800"
+                                className="p-2 mb-2 rounded border text-sm text-gray-800"
                               >
                                 <div className="font-medium">{task.name}</div>
                                 <div className="text-xs text-gray-500">
@@ -752,7 +854,7 @@ export default function ProjectsPage() {
                       editTasks.map((task, index) => (
                         <div
                           key={task.taskId}
-                          className="p-3 mb-2  rounded bg-gray-50"
+                          className="p-3 mb-2 rounded bg-gray-50"
                         >
                           <input
                             type="text"
@@ -848,7 +950,7 @@ export default function ProjectsPage() {
                       editMilestones.map((milestone, index) => (
                         <div
                           key={milestone._id}
-                          className="p-3 mb-2  rounded bg-gray-50"
+                          className="p-3 mb-2 rounded bg-gray-50"
                         >
                           <input
                             type="text"
